@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
 import { getHealthSnapshot } from './health';
+import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import { createProviderConnection, listProviderConnections } from './providerConnections';
 import { redactedRunTraceJson } from './runTrace';
 import { loadWorkspace, saveWorkspace } from './workspace';
@@ -81,6 +82,8 @@ export function App() {
 
   const activeBrandProfiles = brandProfiles.filter((profile) => !profile.archived);
   const archivedBrandProfiles = brandProfiles.filter((profile) => profile.archived);
+  const providerCapabilities = resolveProviderCapabilities(providerConnections);
+  const degradedModeWarning = fullAgenticModeWarning(providerCapabilities);
 
   return (
     <main aria-label="hyogen.ai local shell">
@@ -160,6 +163,16 @@ export function App() {
               Add Provider Connection
             </button>
           )}
+
+          <h2>Provider Capability checklist</h2>
+          <ul>
+            {providerCapabilities.map((capability) => (
+              <li key={capability.name}>
+                {capability.name}: {capability.status}
+              </li>
+            ))}
+          </ul>
+          {degradedModeWarning ? <p>{degradedModeWarning}</p> : null}
         </section>
       ) : null}
 
