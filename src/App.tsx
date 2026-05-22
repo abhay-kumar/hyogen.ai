@@ -1,7 +1,16 @@
+import { FormEvent, useState } from 'react';
 import { getHealthSnapshot } from './health';
+import { loadWorkspace, saveWorkspace } from './workspace';
 
 export function App() {
   const health = getHealthSnapshot();
+  const [workspace, setWorkspace] = useState(() => loadWorkspace());
+  const [workspacePath, setWorkspacePath] = useState('');
+
+  function chooseWorkspace(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setWorkspace(saveWorkspace(workspacePath));
+  }
 
   return (
     <main aria-label="hyogen.ai local shell">
@@ -25,6 +34,24 @@ export function App() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section aria-label="Workspace setup">
+        <h2>Workspace</h2>
+        {workspace ? (
+          <p>{workspace.path}</p>
+        ) : (
+          <form onSubmit={chooseWorkspace}>
+            <label htmlFor="workspace-folder">Workspace folder</label>
+            <input
+              id="workspace-folder"
+              value={workspacePath}
+              onChange={(event) => setWorkspacePath(event.currentTarget.value)}
+              placeholder="~/Hyogen"
+            />
+            <button type="submit">Use Workspace</button>
+          </form>
+        )}
       </section>
     </main>
   );
