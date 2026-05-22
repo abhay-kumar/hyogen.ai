@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { createBrandProfile, listBrandProfiles } from './brandProfiles';
+import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
 import { getHealthSnapshot } from './health';
 import { redactedRunTraceJson } from './runTrace';
 import { loadWorkspace, saveWorkspace } from './workspace';
@@ -12,6 +12,14 @@ export function App() {
   const [brandProfiles, setBrandProfiles] = useState(() => listBrandProfiles());
   const [isCreatingBrandProfile, setIsCreatingBrandProfile] = useState(false);
   const [brandProfileName, setBrandProfileName] = useState('');
+  const [editingBrandProfileId, setEditingBrandProfileId] = useState<string | null>(null);
+  const [brandProfileSettings, setBrandProfileSettings] = useState({
+    audience: '',
+    tone: '',
+    ctaDefault: '',
+    captionDefault: '',
+    sourceDefault: '',
+  });
 
   function chooseWorkspace(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,6 +32,27 @@ export function App() {
     setBrandProfiles(listBrandProfiles());
     setBrandProfileName('');
     setIsCreatingBrandProfile(false);
+  }
+
+  function editBrandProfile(id: string) {
+    const profile = brandProfiles.find((candidate) => candidate.id === id);
+    if (!profile) return;
+    setEditingBrandProfileId(id);
+    setBrandProfileSettings({
+      audience: profile.audience,
+      tone: profile.tone,
+      ctaDefault: profile.ctaDefault,
+      captionDefault: profile.captionDefault,
+      sourceDefault: profile.sourceDefault,
+    });
+  }
+
+  function saveBrandProfileSettings(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editingBrandProfileId) return;
+    updateBrandProfile(editingBrandProfileId, brandProfileSettings);
+    setBrandProfiles(listBrandProfiles());
+    setEditingBrandProfileId(null);
   }
 
   return (
@@ -75,9 +104,84 @@ export function App() {
           {brandProfiles.length > 0 ? (
             <ul>
               {brandProfiles.map((profile) => (
-                <li key={profile.id}>{profile.name}</li>
+                <li key={profile.id}>
+                  <strong>{profile.name}</strong>
+                  {profile.audience ? <p>Audience: {profile.audience}</p> : null}
+                  {profile.tone ? <p>Tone: {profile.tone}</p> : null}
+                  {profile.ctaDefault ? <p>CTA default: {profile.ctaDefault}</p> : null}
+                  {profile.captionDefault ? <p>Caption default: {profile.captionDefault}</p> : null}
+                  {profile.sourceDefault ? <p>Source default: {profile.sourceDefault}</p> : null}
+                  <button type="button" onClick={() => editBrandProfile(profile.id)}>
+                    Edit {profile.name}
+                  </button>
+                </li>
               ))}
             </ul>
+          ) : null}
+          {editingBrandProfileId ? (
+            <form onSubmit={saveBrandProfileSettings}>
+              <label htmlFor="brand-profile-audience">Audience</label>
+              <input
+                id="brand-profile-audience"
+                value={brandProfileSettings.audience}
+                onChange={(event) => {
+                  const value = event.currentTarget.value;
+                  setBrandProfileSettings((settings) => ({
+                    ...settings,
+                    audience: value,
+                  }));
+                }}
+              />
+              <label htmlFor="brand-profile-tone">Tone</label>
+              <input
+                id="brand-profile-tone"
+                value={brandProfileSettings.tone}
+                onChange={(event) => {
+                  const value = event.currentTarget.value;
+                  setBrandProfileSettings((settings) => ({
+                    ...settings,
+                    tone: value,
+                  }));
+                }}
+              />
+              <label htmlFor="brand-profile-cta-default">CTA default</label>
+              <input
+                id="brand-profile-cta-default"
+                value={brandProfileSettings.ctaDefault}
+                onChange={(event) => {
+                  const value = event.currentTarget.value;
+                  setBrandProfileSettings((settings) => ({
+                    ...settings,
+                    ctaDefault: value,
+                  }));
+                }}
+              />
+              <label htmlFor="brand-profile-caption-default">Caption default</label>
+              <input
+                id="brand-profile-caption-default"
+                value={brandProfileSettings.captionDefault}
+                onChange={(event) => {
+                  const value = event.currentTarget.value;
+                  setBrandProfileSettings((settings) => ({
+                    ...settings,
+                    captionDefault: value,
+                  }));
+                }}
+              />
+              <label htmlFor="brand-profile-source-default">Source default</label>
+              <input
+                id="brand-profile-source-default"
+                value={brandProfileSettings.sourceDefault}
+                onChange={(event) => {
+                  const value = event.currentTarget.value;
+                  setBrandProfileSettings((settings) => ({
+                    ...settings,
+                    sourceDefault: value,
+                  }));
+                }}
+              />
+              <button type="submit">Save Brand Profile Settings</button>
+            </form>
           ) : null}
           {isCreatingBrandProfile ? (
             <form onSubmit={saveBrandProfile}>
