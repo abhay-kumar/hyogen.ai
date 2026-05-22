@@ -4,6 +4,7 @@ labels:
   - ready-for-agent
 status: ready-for-agent
 type: prd
+issue_url: https://github.com/abhay-kumar/hyogen.ai/issues/1
 ---
 
 ## Problem Statement
