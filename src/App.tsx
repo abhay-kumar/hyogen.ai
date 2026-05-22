@@ -7,6 +7,7 @@ import {
   deleteProviderConnection,
   listProviderConnections,
 } from './providerConnections';
+import { checkMockProviderHealth, ProviderHealthResult } from './providerHealth';
 import { redactedRunTraceJson } from './runTrace';
 import { loadWorkspace, saveWorkspace } from './workspace';
 
@@ -23,6 +24,7 @@ export function App() {
   const [isCreatingProviderConnection, setIsCreatingProviderConnection] = useState(false);
   const [providerName, setProviderName] = useState('');
   const [providerSecret, setProviderSecret] = useState('');
+  const [providerHealthResults, setProviderHealthResults] = useState<ProviderHealthResult[]>([]);
   const [brandProfileSettings, setBrandProfileSettings] = useState({
     audience: '',
     tone: '',
@@ -87,6 +89,10 @@ export function App() {
   function removeProviderConnection(id: string) {
     deleteProviderConnection(id);
     setProviderConnections(listProviderConnections());
+  }
+
+  function runProviderHealthCheck() {
+    setProviderHealthResults(checkMockProviderHealth(providerConnections));
   }
 
   const activeBrandProfiles = brandProfiles.filter((profile) => !profile.archived);
@@ -175,6 +181,15 @@ export function App() {
               Add Provider Connection
             </button>
           )}
+
+          <button type="button" onClick={runProviderHealthCheck}>
+            Run Provider Health Check
+          </button>
+          {providerHealthResults.map((result) => (
+            <p key={result.providerName}>
+              {result.providerName} health: {result.status}
+            </p>
+          ))}
 
           <h2>Provider Capability checklist</h2>
           <ul>
