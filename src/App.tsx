@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
 import { getHealthSnapshot } from './health';
+import { createProviderConnection, listProviderConnections } from './providerConnections';
 import { redactedRunTraceJson } from './runTrace';
 import { loadWorkspace, saveWorkspace } from './workspace';
 
@@ -13,6 +14,10 @@ export function App() {
   const [isCreatingBrandProfile, setIsCreatingBrandProfile] = useState(false);
   const [brandProfileName, setBrandProfileName] = useState('');
   const [editingBrandProfileId, setEditingBrandProfileId] = useState<string | null>(null);
+  const [providerConnections, setProviderConnections] = useState(() => listProviderConnections());
+  const [isCreatingProviderConnection, setIsCreatingProviderConnection] = useState(false);
+  const [providerName, setProviderName] = useState('');
+  const [providerSecret, setProviderSecret] = useState('');
   const [brandProfileSettings, setBrandProfileSettings] = useState({
     audience: '',
     tone: '',
@@ -65,6 +70,15 @@ export function App() {
     setBrandProfiles(listBrandProfiles());
   }
 
+  function saveProviderConnection(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    createProviderConnection({ name: providerName, secret: providerSecret });
+    setProviderConnections(listProviderConnections());
+    setProviderName('');
+    setProviderSecret('');
+    setIsCreatingProviderConnection(false);
+  }
+
   const activeBrandProfiles = brandProfiles.filter((profile) => !profile.archived);
   const archivedBrandProfiles = brandProfiles.filter((profile) => profile.archived);
 
@@ -109,6 +123,45 @@ export function App() {
           </form>
         )}
       </section>
+
+      {workspace ? (
+        <section aria-label="Provider Connections">
+          <h2>Provider Connections</h2>
+          {providerConnections.length === 0 ? <p>No Provider Connections yet.</p> : null}
+          {providerConnections.length > 0 ? (
+            <ul>
+              {providerConnections.map((connection) => (
+                <li key={connection.id}>
+                  <strong>{connection.name}</strong>
+                  <p>{connection.credentialRef}</p>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {isCreatingProviderConnection ? (
+            <form onSubmit={saveProviderConnection}>
+              <label htmlFor="provider-name">Provider name</label>
+              <input
+                id="provider-name"
+                value={providerName}
+                onChange={(event) => setProviderName(event.currentTarget.value)}
+              />
+              <label htmlFor="provider-secret">API key</label>
+              <input
+                id="provider-secret"
+                type="password"
+                value={providerSecret}
+                onChange={(event) => setProviderSecret(event.currentTarget.value)}
+              />
+              <button type="submit">Save Provider Connection</button>
+            </form>
+          ) : (
+            <button type="button" onClick={() => setIsCreatingProviderConnection(true)}>
+              Add Provider Connection
+            </button>
+          )}
+        </section>
+      ) : null}
 
       {workspace ? (
         <section aria-label="Dashboard">
