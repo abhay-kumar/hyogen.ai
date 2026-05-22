@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { createBrandProfile, listBrandProfiles } from './brandProfiles';
 import { getHealthSnapshot } from './health';
 import { redactedRunTraceJson } from './runTrace';
 import { loadWorkspace, saveWorkspace } from './workspace';
@@ -8,10 +9,21 @@ export function App() {
   const [workspace, setWorkspace] = useState(() => loadWorkspace());
   const [workspacePath, setWorkspacePath] = useState('');
   const [showRunTrace, setShowRunTrace] = useState(false);
+  const [brandProfiles, setBrandProfiles] = useState(() => listBrandProfiles());
+  const [isCreatingBrandProfile, setIsCreatingBrandProfile] = useState(false);
+  const [brandProfileName, setBrandProfileName] = useState('');
 
   function chooseWorkspace(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setWorkspace(saveWorkspace(workspacePath));
+  }
+
+  function saveBrandProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    createBrandProfile({ name: brandProfileName });
+    setBrandProfiles(listBrandProfiles());
+    setBrandProfileName('');
+    setIsCreatingBrandProfile(false);
   }
 
   return (
@@ -59,7 +71,30 @@ export function App() {
       {workspace ? (
         <section aria-label="Dashboard">
           <h2>Brand Profiles</h2>
-          <p>No Brand Profiles yet.</p>
+          {brandProfiles.length === 0 ? <p>No Brand Profiles yet.</p> : null}
+          {brandProfiles.length > 0 ? (
+            <ul>
+              {brandProfiles.map((profile) => (
+                <li key={profile.id}>{profile.name}</li>
+              ))}
+            </ul>
+          ) : null}
+          {isCreatingBrandProfile ? (
+            <form onSubmit={saveBrandProfile}>
+              <label htmlFor="brand-profile-name">Brand Profile name</label>
+              <input
+                id="brand-profile-name"
+                value={brandProfileName}
+                onChange={(event) => setBrandProfileName(event.currentTarget.value)}
+              />
+              <button type="submit">Save Brand Profile</button>
+            </form>
+          ) : (
+            <button type="button" onClick={() => setIsCreatingBrandProfile(true)}>
+              Create Brand Profile
+            </button>
+          )}
+
           <h2>Projects</h2>
           <p>No Projects yet.</p>
         </section>
