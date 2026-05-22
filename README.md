@@ -43,4 +43,12 @@ Brief / Recipe
 
 ## Development
 
-Implementation has not started yet. See `HYOGEN_MVP_SPEC.md` for planned modules, DeepAgents stage harness, storage model, managed runtimes, and local verification strategy.
+The first local shell is implemented as a React/Vite app while the native Tauri boundary is introduced through later MVP slices.
+
+```bash
+npm install
+npm run verify
+npm run build-local
+```
+
+See `HYOGEN_MVP_SPEC.md` for planned modules, DeepAgents stage harness, storage model, managed runtimes, and local verification strategy.
