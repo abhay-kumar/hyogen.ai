@@ -53,6 +53,15 @@ export function App() {
           </form>
         )}
       </section>
+
+      {workspace ? (
+        <section aria-label="Dashboard">
+          <h2>Brand Profiles</h2>
+          <p>No Brand Profiles yet.</p>
+          <h2>Projects</h2>
+          <p>No Projects yet.</p>
+        </section>
+      ) : null}
     </main>
   );
 }
