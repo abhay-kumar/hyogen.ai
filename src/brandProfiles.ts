@@ -8,11 +8,21 @@ export type BrandProfile = {
   ctaDefault: string;
   captionDefault: string;
   sourceDefault: string;
+  archived: boolean;
 };
 
 export function listBrandProfiles(storage: Storage = window.localStorage): BrandProfile[] {
   const encoded = storage.getItem(BRAND_PROFILES_STORAGE_KEY);
-  return encoded ? (JSON.parse(encoded) as BrandProfile[]) : [];
+  const profiles = encoded ? (JSON.parse(encoded) as BrandProfile[]) : [];
+  return profiles.map((profile) => ({
+    ...profile,
+    audience: profile.audience ?? '',
+    tone: profile.tone ?? '',
+    ctaDefault: profile.ctaDefault ?? '',
+    captionDefault: profile.captionDefault ?? '',
+    sourceDefault: profile.sourceDefault ?? '',
+    archived: Boolean(profile.archived),
+  }));
 }
 
 export function createBrandProfile(
@@ -28,6 +38,7 @@ export function createBrandProfile(
     ctaDefault: '',
     captionDefault: '',
     sourceDefault: '',
+    archived: false,
   };
   storage.setItem(BRAND_PROFILES_STORAGE_KEY, JSON.stringify([...profiles, profile]));
   return profile;

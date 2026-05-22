@@ -55,6 +55,19 @@ export function App() {
     setEditingBrandProfileId(null);
   }
 
+  function archiveBrandProfile(id: string) {
+    updateBrandProfile(id, { archived: true });
+    setBrandProfiles(listBrandProfiles());
+  }
+
+  function restoreBrandProfile(id: string) {
+    updateBrandProfile(id, { archived: false });
+    setBrandProfiles(listBrandProfiles());
+  }
+
+  const activeBrandProfiles = brandProfiles.filter((profile) => !profile.archived);
+  const archivedBrandProfiles = brandProfiles.filter((profile) => profile.archived);
+
   return (
     <main aria-label="hyogen.ai local shell">
       <section aria-label="Local health">
@@ -100,10 +113,10 @@ export function App() {
       {workspace ? (
         <section aria-label="Dashboard">
           <h2>Brand Profiles</h2>
-          {brandProfiles.length === 0 ? <p>No Brand Profiles yet.</p> : null}
-          {brandProfiles.length > 0 ? (
+          {activeBrandProfiles.length === 0 ? <p>No Brand Profiles yet.</p> : null}
+          {activeBrandProfiles.length > 0 ? (
             <ul>
-              {brandProfiles.map((profile) => (
+              {activeBrandProfiles.map((profile) => (
                 <li key={profile.id}>
                   <strong>{profile.name}</strong>
                   {profile.audience ? <p>Audience: {profile.audience}</p> : null}
@@ -113,6 +126,9 @@ export function App() {
                   {profile.sourceDefault ? <p>Source default: {profile.sourceDefault}</p> : null}
                   <button type="button" onClick={() => editBrandProfile(profile.id)}>
                     Edit {profile.name}
+                  </button>
+                  <button type="button" onClick={() => archiveBrandProfile(profile.id)}>
+                    Archive {profile.name}
                   </button>
                 </li>
               ))}
@@ -198,6 +214,22 @@ export function App() {
               Create Brand Profile
             </button>
           )}
+
+          {archivedBrandProfiles.length > 0 ? (
+            <>
+              <h2>Archived Brand Profiles</h2>
+              <ul>
+                {archivedBrandProfiles.map((profile) => (
+                  <li key={profile.id}>
+                    {profile.name}
+                    <button type="button" onClick={() => restoreBrandProfile(profile.id)}>
+                      Restore {profile.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
 
           <h2>Projects</h2>
           <p>No Projects yet.</p>
