@@ -1,0 +1,156 @@
+<svg width="1400" height="920" viewBox="0 0 1400 920" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">hyogen.ai Tauri, Rust Boundary, and DeepAgents Architecture</title>
+  <desc id="desc">Architecture diagram showing React UI talking to Tauri commands/events, Rust boundary supervising DeepAgents and local resources, and DeepAgents orchestrating the guided stage graph and provider/tool calls.</desc>
+  <defs>
+    <style>
+      .bg { fill: #0b1020; }
+      .panel { fill: #111827; stroke: #334155; stroke-width: 2; rx: 22; }
+      .box { fill: #172033; stroke: #475569; stroke-width: 2; rx: 16; }
+      .ui { fill: #12324a; stroke: #38bdf8; }
+      .rust { fill: #3a2416; stroke: #fb923c; }
+      .deep { fill: #241b49; stroke: #a78bfa; }
+      .local { fill: #163326; stroke: #34d399; }
+      .cloud { fill: #3b1830; stroke: #f472b6; }
+      .tool { fill: #313016; stroke: #facc15; }
+      .title { fill: #f8fafc; font: 700 30px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .subtitle { fill: #cbd5e1; font: 500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .label { fill: #f8fafc; font: 700 19px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .text { fill: #dbeafe; font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .muted { fill: #94a3b8; font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .small { fill: #cbd5e1; font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .arrow { stroke: #cbd5e1; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+      .arrowBack { stroke: #94a3b8; stroke-width: 2.1; fill: none; marker-end: url(#arrowMuted); stroke-dasharray: 6 5; }
+      .arrowDeep { stroke: #a78bfa; stroke-width: 2.8; fill: none; marker-end: url(#arrowDeep); }
+      .arrowRust { stroke: #fb923c; stroke-width: 2.8; fill: none; marker-end: url(#arrowRust); }
+      .arrowLocal { stroke: #34d399; stroke-width: 2.4; fill: none; marker-end: url(#arrowLocal); }
+      .arrowCloud { stroke: #f472b6; stroke-width: 2.4; fill: none; marker-end: url(#arrowCloud); }
+      .badge { fill: #020617; stroke: #334155; stroke-width: 1; rx: 12; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#cbd5e1" />
+    </marker>
+    <marker id="arrowMuted" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8" />
+    </marker>
+    <marker id="arrowDeep" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#a78bfa" />
+    </marker>
+    <marker id="arrowRust" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#fb923c" />
+    </marker>
+    <marker id="arrowLocal" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#34d399" />
+    </marker>
+    <marker id="arrowCloud" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#f472b6" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1400" height="920"/>
+
+  <text class="title" x="56" y="58">hyogen.ai architecture: Tauri UI + Rust boundary + DeepAgents harness</text>
+  <text class="subtitle" x="56" y="88">DeepAgents owns workflow intelligence. Rust/Tauri owns the native safety boundary and local OS access.</text>
+
+  <!-- Main local app panel -->
+  <rect class="panel" x="40" y="120" width="910" height="690" rx="24"/>
+  <text class="label" x="70" y="158">Local macOS desktop app</text>
+  <text class="muted" x="70" y="181">No hosted backend required; project data and traces stay local.</text>
+
+  <!-- Frontend -->
+  <rect class="box ui" x="80" y="230" width="260" height="170" rx="18"/>
+  <text class="label" x="110" y="268">React UI</text>
+  <text class="text" x="110" y="298">• Studio chat</text>
+  <text class="text" x="110" y="322">• Approval cards</text>
+  <text class="text" x="110" y="346">• Progress + previews</text>
+  <text class="text" x="110" y="370">• Trace viewer</text>
+
+  <!-- Rust boundary -->
+  <rect class="box rust" x="430" y="205" width="330" height="235" rx="18"/>
+  <text class="label" x="462" y="244">Tauri / Rust boundary</text>
+  <text class="text" x="462" y="276">• Small intent/event API</text>
+  <text class="text" x="462" y="300">• SQLite/project-folder API</text>
+  <text class="text" x="462" y="324">• Keychain secret broker</text>
+  <text class="text" x="462" y="348">• Filesystem policy</text>
+  <text class="text" x="462" y="372">• Child-process supervision</text>
+  <text class="text" x="462" y="396">• Trace ingestion + redaction</text>
+
+  <!-- DeepAgents -->
+  <rect class="box deep" x="430" y="525" width="330" height="220" rx="18"/>
+  <text class="label" x="462" y="564">DeepAgents runtime</text>
+  <text class="text" x="462" y="596">• Guided stage graph</text>
+  <text class="text" x="462" y="620">• Chat-driven revisions</text>
+  <text class="text" x="462" y="644">• Approval interrupts/checkpoints</text>
+  <text class="text" x="462" y="668">• Tool orchestration</text>
+  <text class="text" x="462" y="692">• Provider/model calls</text>
+  <text class="muted" x="462" y="720">Supervised locally by Rust</text>
+
+  <!-- Local resources -->
+  <rect class="box local" x="1015" y="160" width="320" height="250" rx="18"/>
+  <text class="label" x="1045" y="198">Local state + secrets</text>
+  <text class="text" x="1045" y="230">• hyogen.sqlite</text>
+  <text class="text" x="1045" y="254">• Project folders</text>
+  <text class="text" x="1045" y="278">• Media, renders, finals</text>
+  <text class="text" x="1045" y="302">• Traces/debug bundles</text>
+  <text class="text" x="1045" y="326">• macOS Keychain refs</text>
+  <text class="muted" x="1045" y="362">DeepAgents accesses these through Rust tools.</text>
+
+  <!-- Tool runtimes -->
+  <rect class="box tool" x="1015" y="465" width="320" height="205" rx="18"/>
+  <text class="label" x="1045" y="503">Managed local runtimes</text>
+  <text class="text" x="1045" y="535">• FFmpeg / FFprobe</text>
+  <text class="text" x="1045" y="559">• yt-dlp</text>
+  <text class="text" x="1045" y="583">• Playwright / Chromium</text>
+  <text class="text" x="1045" y="607">• Node / Remotion</text>
+  <text class="muted" x="1045" y="642">Launched and logged by Rust.</text>
+
+  <!-- Cloud providers -->
+  <rect class="box cloud" x="1015" y="720" width="320" height="140" rx="18"/>
+  <text class="label" x="1045" y="758">External AI providers</text>
+  <text class="text" x="1045" y="790">OpenAI, Anthropic, Gemini,</text>
+  <text class="text" x="1045" y="814">OpenRouter, ElevenLabs, etc.</text>
+  <text class="muted" x="1045" y="842">BYOK; keys brokered from Keychain.</text>
+
+  <!-- Flow arrows -->
+  <path class="arrow" d="M340 285 C375 285, 390 285, 430 285"/>
+  <text class="small" x="352" y="268">intents</text>
+  <path class="arrowBack" d="M430 350 C390 350, 375 350, 340 350"/>
+  <text class="small" x="353" y="382">events/state</text>
+
+  <path class="arrowRust" d="M595 440 L595 525"/>
+  <text class="small" x="616" y="484">start/resume/cancel</text>
+  <path class="arrowDeep" d="M642 525 L642 440"/>
+  <text class="small" x="662" y="484">events/checkpoints</text>
+
+  <path class="arrowLocal" d="M760 280 C865 250, 910 245, 1015 245"/>
+  <text class="small" x="820" y="239">read/write/query</text>
+  <path class="arrowLocal" d="M760 345 C850 350, 925 347, 1015 330"/>
+  <text class="small" x="818" y="374">secrets by scope</text>
+
+  <path class="arrowDeep" d="M760 615 C860 575, 915 565, 1015 560"/>
+  <text class="small" x="812" y="552">tool request</text>
+  <path class="arrowRust" d="M1015 610 C910 640, 860 650, 760 670"/>
+  <text class="small" x="820" y="675">result + artifacts</text>
+
+  <path class="arrowCloud" d="M760 700 C850 765, 910 790, 1015 790"/>
+  <text class="small" x="812" y="768">provider calls</text>
+  <path class="arrowBack" d="M1015 825 C900 840, 835 790, 760 720"/>
+  <text class="small" x="842" y="842">model output</text>
+
+  <!-- Trace flow badge -->
+  <rect class="badge" x="80" y="725" width="310" height="58" rx="14"/>
+  <text class="small" x="104" y="748">Trace/event loop:</text>
+  <text class="small" x="104" y="770">DeepAgents + tools → Rust trace store → UI Trace Viewer</text>
+  <path class="arrowBack" d="M430 720 C370 720, 330 720, 390 754"/>
+
+  <!-- Notes -->
+  <rect class="badge" x="80" y="455" width="260" height="156" rx="14"/>
+  <text class="label" x="108" y="488">Key rule</text>
+  <text class="text" x="108" y="520">Rust is not the agent harness.</text>
+  <text class="text" x="108" y="546">DeepAgents is not given raw,</text>
+  <text class="text" x="108" y="570">unbounded filesystem/secret</text>
+  <text class="text" x="108" y="594">access.</text>
+
+  <!-- Numbered flow -->
+  <rect class="badge" x="70" y="830" width="880" height="58" rx="14"/>
+  <text class="small" x="92" y="854">Typical request: 1 UI sends intent → 2 Rust validates + forwards → 3 DeepAgents advances stage → 4 DeepAgents calls Rust tools/providers → 5 Rust persists artifacts/traces → 6 UI receives events.</text>
+</svg>

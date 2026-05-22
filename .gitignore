@@ -1,0 +1,21 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Local coding-agent/editor harness state
+.pi/
+
+# Future app build outputs/dependencies
+node_modules/
+dist/
+build/
+target/
+.cache/
+coverage/
+
+# Local runtime/workspace artifacts
+Hyogen/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

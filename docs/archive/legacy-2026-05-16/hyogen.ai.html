@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hyogen.ai - Premium macOS Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        // Native Apple typography
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                        mono: ['"SF Mono"', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+                    },
+                    colors: {
+                        mac: {
+                            bg: '#1e1e1e',      // Default dark mode macOS background
+                            sidebar: '#252525', // Sidebar background
+                            border: '#3c3c3c',  // Subtle macOS borders
+                            accent: '#0a84ff',  // macOS Blue accent
+                            text: '#dedede',    // Slightly off-white for readability
+                            muted: '#8e8e93',   // macOS gray text
+                            input: '#2d2d2d',   // Input fields
+                            hover: '#3a3a3a',   // Hover states
+                        }
+                    },
+                    boxShadow: {
+                        'mac': '0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1)',
+                        'mac-button': '0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            -webkit-font-smoothing: antialiased; 
+            background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* The App Window Container */
+        #app-window {
+            width: 1200px;
+            height: 800px;
+            background: rgba(30, 30, 30, 0.85); /* macOS translucency effect */
+            backdrop-filter: blur(40px) saturate(150%);
+            -webkit-backdrop-filter: blur(40px) saturate(150%);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        /* macOS Traffic Lights */
+        .traffic-lights {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+        .light { width: 12px; height: 12px; border-radius: 50%; }
+        .close { background: #ff5f56; border: 1px solid #e0443e; }
+        .minimize { background: #ffbd2e; border: 1px solid #dea123; }
+        .maximize { background: #27c93f; border: 1px solid #1aab29; }
+
+        /* Smooth View Transitions */
+        .view { display: none; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; transform: translateY(10px); }
+        .view.active { display: flex; opacity: 1; transform: translateY(0); }
+
+        /* Custom Scrollbar to match macOS */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        /* macOS Input Styling */
+        input[type="text"], input[type="password"], select {
+            appearance: none;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: white;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        input:focus, select:focus {
+            border-color: #0a84ff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.3);
+        }
+
+        /* macOS Primary Button */
+        .btn-mac-primary {
+            background: linear-gradient(180deg, #2d94ff 0%, #0071e3 100%);
+            border: 1px solid #005bb5;
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+        }
+        .btn-mac-primary:active { background: #0062c6; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); }
+        .btn-mac-secondary {
+            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            transition: all 0.1s;
+        }
+        .btn-mac-secondary:hover { background: rgba(255,255,255,0.15); }
+    </style>
+</head>
+<body>
+
+    <!-- OS Desktop Environment Simulation -->
+    <div id="app-window">
+        
+        <!-- Mac Window Controls -->
+        <div class="traffic-lights">
+            <div class="light close"></div>
+            <div class="light minimize"></div>
+            <div class="light maximize"></div>
+        </div>
+
+        <!-- App Header Drag Area (Native Feel) -->
+        <div class="h-12 w-full absolute top-0 left-0 border-b border-white/10 flex items-center justify-center pointer-events-none z-10" style="-webkit-app-region: drag;">
+            <span id="window-title" class="text-[13px] font-semibold text-mac-text">hyogen.ai - Welcome</span>
+        </div>
+
+        <!-- ==========================================
+             VIEW 1: WELCOME & ACTIVATION
+        =========================================== -->
+        <div id="view-1" class="view active flex-1 flex-col items-center justify-center p-8 mt-12">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-b from-gray-700 to-black border border-white/20 flex items-center justify-center shadow-lg mb-6">
+                <span class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">h</span>
+            </div>
+            <h1 class="text-3xl font-semibold text-white mb-2">hyogen.ai</h1>
+            <p class="text-[13px] text-mac-muted mb-10 text-center max-w-sm leading-relaxed">The privacy-first agentic video orchestrator.<br>Powered by your Apple Silicon.</p>
+            
+            <div class="w-[400px] bg-black/20 border border-white/10 rounded-xl p-6 shadow-inner backdrop-blur-md">
+                <div class="mb-5">
+                    <label class="block text-[11px] font-semibold text-mac-muted uppercase tracking-wider mb-2">Activation</label>
+                    <input type="text" id="license-input" placeholder="Enter License Key" class="w-full px-3 py-2 text-[13px]" onkeyup="checkActivation()">
+                </div>
+                
+                <div class="flex justify-between items-center mt-6">
+                    <button class="text-[12px] text-mac-accent hover:underline">Purchase License</button>
+                    <button id="activate-btn" onclick="simulateLoad(2, 'Configuring Workspace...')" class="btn-mac-secondary px-4 py-1.5 text-[13px] font-medium">Start 14-Day Trial</button>
+                </div>
+            </div>
+
+            <div class="mt-12 flex gap-12 text-center opacity-70">
+                <div>
+                    <div class="text-[18px] mb-1">🔐</div>
+                    <div class="text-[11px] font-semibold text-white">BYOK</div>
+                    <div class="text-[10px] text-mac-muted">No API markups</div>
+                </div>
+                <div>
+                    <div class="text-[18px] mb-1">⚡️</div>
+                    <div class="text-[11px] font-semibold text-white">Native Render</div>
+                    <div class="text-[10px] text-mac-muted">M-Series FFmpeg</div>
+                </div>
+                <div>
+                    <div class="text-[18px] mb-1">🛡️</div>
+                    <div class="text-[11px] font-semibold text-white">100% Local</div>
+                    <div class="text-[10px] text-mac-muted">Data stays here</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             VIEW 2: MAC NATIVE PREFERENCES / CONFIG
+        =========================================== -->
+        <div id="view-2" class="view flex-1 mt-12 bg-mac-bg/50">
+            <!-- Mac Settings Sidebar -->
+            <div class="w-[220px] border-r border-white/10 bg-black/20 p-4 pt-6">
+                <div class="text-[11px] font-bold text-mac-muted px-2 mb-2">PREFERENCES</div>
+                <ul class="space-y-1">
+                    <li class="bg-white/10 rounded-md px-3 py-1.5 text-[13px] font-medium text-white flex items-center gap-2 shadow-sm"><span class="text-[14px]">🧠</span> LLM Providers</li>
+                    <li class="rounded-md px-3 py-1.5 text-[13px] text-mac-text hover:bg-white/5 flex items-center gap-2"><span class="text-[14px]">🎙️</span> Voice Engines</li>
+                    <li class="rounded-md px-3 py-1.5 text-[13px] text-mac-text hover:bg-white/5 flex items-center gap-2"><span class="text-[14px]">📺</span> YouTube Auth</li>
+                </ul>
+            </div>
+            
+            <!-- Settings Content -->
+            <div class="flex-1 p-10 overflow-y-auto">
+                <div class="max-w-2xl">
+                    <h2 class="text-2xl font-semibold text-white mb-2">LLM Providers</h2>
+                    <p class="text-[13px] text-mac-muted mb-8 pb-4 border-b border-white/10">Configure connections to local models or cloud APIs.</p>
+
+                    <!-- Anthropic Config -->
+                    <div class="flex gap-6 mb-8">
+                        <div class="w-12 h-12 bg-[#D1C6BB] rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-black/20">
+                            <span class="text-black font-serif font-bold text-xl">A</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between mb-1">
+                                <h3 class="text-[14px] font-medium text-white">Anthropic (Claude 3.5)</h3>
+                                <span class="px-2 py-0.5 rounded text-[10px] bg-blue-500/20 text-mac-accent border border-mac-accent/30 font-medium">Recommended</span>
+                            </div>
+                            <p class="text-[12px] text-mac-muted mb-3">Cloud API processing. Best for complex scriptwriting and directing workflows.</p>
+                            <input type="password" placeholder="sk-ant-api03-..." class="w-full px-3 py-1.5 text-[13px] mb-2" value="sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxx">
+                            <div class="flex justify-end">
+                                <button class="btn-mac-secondary px-3 py-1 text-[12px]">Verify Connection</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ollama Config -->
+                    <div class="flex gap-6 mb-8">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-black/20">
+                            <span class="text-black font-bold text-xl">🦙</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between mb-1">
+                                <h3 class="text-[14px] font-medium text-white">Ollama (Local)</h3>
+                                <span class="px-2 py-0.5 rounded text-[10px] bg-green-500/20 text-green-400 border border-green-500/30 font-medium">100% Offline</span>
+                            </div>
+                            <p class="text-[12px] text-mac-muted mb-3">Connect to local models running on your Mac hardware.</p>
+                            <div class="flex items-center gap-2 mb-2">
+                                <input type="text" value="http://127.0.0.1:11434" class="w-2/3 px-3 py-1.5 text-[13px]">
+                                <input type="text" value="llama3:8b" class="w-1/3 px-3 py-1.5 text-[13px]" placeholder="Default Model">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Bar -->
+                <div class="absolute bottom-0 right-0 p-6 w-[calc(100%-220px)] bg-mac-bg/95 backdrop-blur-md border-t border-white/10 flex justify-end gap-3">
+                    <button onclick="nav(1)" class="btn-mac-secondary px-4 py-1.5 text-[13px]">Back</button>
+                    <button onclick="simulateLoad(3, 'Loading Channels...')" class="btn-mac-primary px-4 py-1.5 text-[13px] font-medium">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             VIEW 3: AGENCY / CHANNEL DASHBOARD
+        =========================================== -->
+        <div id="view-3" class="view flex-1 flex-col mt-12 bg-mac-bg">
+            <div class="px-8 py-6 border-b border-white/10 flex justify-between items-center bg-black/10">
+                <div>
+                    <h2 class="text-2xl font-semibold text-white">Channel Profiles</h2>
+                    <p class="text-[13px] text-mac-muted">Manage brand identities and automation pipelines.</p>
+                </div>
+                <button class="btn-mac-secondary px-3 py-1.5 text-[13px] flex items-center gap-1"><span class="text-[16px] leading-none">+</span> New Profile</button>
+            </div>
+
+            <div class="p-8 grid grid-cols-2 gap-6 overflow-y-auto pb-24">
+                
+                <!-- F1 Insights Card -->
+                <div class="bg-black/30 border border-white/10 rounded-xl overflow-hidden shadow-lg hover:border-mac-accent/50 transition duration-200">
+                    <div class="h-2 bg-red-600"></div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-[18px] font-semibold text-white">F1 Insights</h3>
+                            <button onclick="simulateLoad(4, 'Opening Studio...')" class="btn-mac-primary px-3 py-1 text-[12px]">Open Studio</button>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Format Row -->
+                            <div class="bg-white/5 border border-white/10 rounded-lg p-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[12px] font-medium text-white flex items-center gap-1">📱 Shorts Pipeline</span>
+                                    <span class="text-[10px] text-mac-muted cursor-pointer hover:text-white">Edit</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] text-mac-muted">
+                                    <div><span class="opacity-50">LLM:</span> Claude 3.5</div>
+                                    <div><span class="opacity-50">TTS:</span> 11Labs (Marcus)</div>
+                                    <div class="col-span-2"><span class="opacity-50">Visual:</span> Formula1-Bold.ttf • Red/Black</div>
+                                </div>
+                            </div>
+
+                            <!-- Format Row -->
+                            <div class="bg-white/5 border border-white/10 rounded-lg p-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[12px] font-medium text-white flex items-center gap-1">📺 Long-Form Pipeline</span>
+                                    <span class="text-[10px] text-mac-muted cursor-pointer hover:text-white">Edit</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] text-mac-muted">
+                                    <div><span class="opacity-50">LLM:</span> Ollama (Llama3)</div>
+                                    <div><span class="opacity-50">TTS:</span> OpenAI (Onyx)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Placeholder -->
+                <div class="border border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center p-8 text-mac-muted hover:bg-white/5 hover:border-white/30 hover:text-white transition cursor-pointer">
+                    <span class="text-3xl mb-2">+</span>
+                    <span class="text-[13px] font-medium">Create Client Profile</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             VIEW 4: THE NATIVE WORKSPACE
+        =========================================== -->
+        <div id="view-4" class="view flex-1 flex-row mt-12 bg-black">
+            
+            <!-- Left Sidebar (Sessions) -->
+            <div class="w-[240px] bg-[#1e1e1e] border-r border-white/10 flex flex-col">
+                <div class="p-4 border-b border-white/10">
+                    <button class="w-full btn-mac-secondary py-1.5 px-3 text-[12px] flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> New Video Session
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-3">
+                    <div class="text-[10px] font-bold text-mac-muted uppercase px-2 mb-2">F1 Insights Projects</div>
+                    <div class="bg-mac-accent/20 text-mac-accent border border-mac-accent/30 rounded-md px-3 py-1.5 text-[13px] font-medium shadow-sm mb-1">
+                        Schumacher History
+                    </div>
+                    <div class="text-mac-text hover:bg-white/5 rounded-md px-3 py-1.5 text-[13px] mb-1 cursor-pointer">
+                        Monaco GP Review
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Chat/Timeline area -->
+            <div class="flex-1 flex flex-col bg-[#1e1e1e] relative">
+                <!-- Status Bar -->
+                <div class="h-9 border-b border-white/10 flex items-center justify-between px-4 bg-black/20">
+                    <div class="flex gap-3 items-center">
+                        <span class="text-[11px] text-mac-muted">Format:</span>
+                        <select class="bg-transparent border border-white/20 rounded px-2 py-0.5 text-[11px] text-white">
+                            <option>📱 Shorts Pipeline</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2 text-[11px]">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span class="text-mac-muted">Local FFmpeg Ready</span>
+                    </div>
+                </div>
+
+                <!-- Chat Log -->
+                <div class="flex-1 overflow-y-auto p-6 flex flex-col" id="chat-container">
+                    <div class="text-center text-[10px] text-mac-muted mb-8">Session started: Today at 10:42 AM</div>
+                    
+                    <!-- User Prompt -->
+                    <div class="self-end max-w-[80%] mb-6">
+                        <div class="bg-mac-accent text-white px-4 py-2.5 rounded-[18px] rounded-tr-[4px] text-[13px] shadow-sm">
+                            Make a 60-second short about Ferrari's dominance under Michael Schumacher. Keep the pacing aggressive.
+                        </div>
+                    </div>
+
+                    <!-- Agent Workflow Interactive UI -->
+                    <div class="self-start max-w-[90%] w-full mb-6 flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shrink-0 border border-white/20 shadow-sm mt-1">
+                            <span class="text-white text-[12px] font-bold">OS</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-[12px] font-medium text-mac-muted mb-1">Agent Orchestrator</div>
+                            
+                            <!-- Interactive Card matching macOS Finder aesthetics -->
+                            <div class="bg-white/5 border border-white/10 rounded-xl overflow-hidden shadow-mac">
+                                <div class="bg-white/5 border-b border-white/10 px-4 py-2 flex justify-between items-center">
+                                    <span class="text-[12px] font-medium text-white flex items-center gap-2">✍️ Script Drafted</span>
+                                    <span class="text-[11px] text-mac-muted">142 words • ~58s</span>
+                                </div>
+                                <div class="p-4 bg-black/40 text-[12px] text-mac-text font-mono leading-relaxed h-[120px] overflow-y-auto">
+                                    [0:00] (Fast cut, engine revs)<br>
+                                    NARRATOR: Red. The color of passion. The color of speed. The color of dominance.<br>
+                                    [0:05] (Cut to Schumacher 2004)<br>
+                                    NARRATOR: For decades, Ferrari wasn't just a team. It was a religion.
+                                </div>
+                                <div class="p-3 bg-white/5 border-t border-white/10 flex justify-end gap-2">
+                                    <button class="btn-mac-secondary px-3 py-1 text-[12px]">Edit Text</button>
+                                    <button onclick="triggerRender()" id="render-btn" class="btn-mac-primary px-3 py-1 text-[12px] font-medium shadow-sm">Approve & Start Render Pipeline</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Render Process (Hidden initially) -->
+                    <div id="render-process" class="hidden self-start max-w-[90%] w-full mb-6 flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shrink-0 border border-white/20 shadow-sm mt-1">
+                            <span class="text-white text-[12px] font-bold">⚙️</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-[12px] font-medium text-mac-muted mb-1">Local Processing Engine</div>
+                            <div class="bg-black/40 border border-white/10 rounded-xl p-4 shadow-mac font-mono text-[11px] text-[#00ff00]">
+                                > Initiating yt-dlp asset download... [OK]<br>
+                                > Calling ElevenLabs API (Marcus)... [OK]<br>
+                                > Starting hardware-accelerated Apple Videotoolbox render...<br>
+                                <div class="flex items-center gap-2 mt-2 text-white">
+                                    <div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                        <div id="progress-bar" class="bg-mac-accent h-full w-0 transition-all duration-100 ease-linear"></div>
+                                    </div>
+                                    <span id="progress-text">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input box -->
+                <div class="p-4 border-t border-white/10 bg-black/20">
+                    <div class="bg-black/40 border border-white/10 rounded-lg flex items-center p-1.5 focus-within:border-mac-accent transition">
+                        <input type="text" class="flex-1 bg-transparent border-none text-[13px] text-white px-3 outline-none" placeholder="Message agents...">
+                        <button class="w-7 h-7 bg-white/10 rounded hover:bg-white/20 flex items-center justify-center text-white transition">
+                            ↑
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Preview Panel -->
+            <div class="w-[320px] bg-[#1a1a1a] border-l border-white/10 flex flex-col shadow-[-10px_0_20px_rgba(0,0,0,0.3)] z-10 relative">
+                
+                <!-- OS Notification Overlay (Hidden initially) -->
+                <div id="mac-notification" class="absolute top-4 right-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-3 shadow-2xl flex gap-3 w-[280px] transform translate-x-[120%] transition-transform duration-500 z-50">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/OS_X_Messages_icon.png" class="w-10 h-10 rounded-lg">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[12px] font-bold text-white">hyogen.ai Engine</span>
+                            <span class="text-[10px] text-white/50">Now</span>
+                        </div>
+                        <div class="text-[11px] text-white/90">Render Complete. Local MP4 saved successfully.</div>
+                    </div>
+                </div>
+
+                <div class="p-3 border-b border-white/10 flex justify-between items-center bg-black/20">
+                    <span class="text-[11px] font-bold text-mac-muted uppercase">Output Preview</span>
+                    <button class="btn-mac-secondary px-2 py-0.5 text-[10px]">Open in Finder</button>
+                </div>
+                
+                <div class="flex-1 flex items-center justify-center p-4 bg-black relative">
+                    <!-- Placeholder state -->
+                    <div id="video-empty" class="text-center">
+                        <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-2 border border-white/10">
+                            <span class="text-[20px] opacity-50">🎬</span>
+                        </div>
+                        <div class="text-[12px] text-mac-muted">No media generated yet.</div>
+                    </div>
+
+                    <!-- Final Rendered state (hidden initially) -->
+                    <div id="video-player" class="hidden w-[240px] h-[426px] bg-gray-900 rounded-lg border border-white/20 shadow-2xl relative overflow-hidden group">
+                        <!-- Simulated blurred background pad -->
+                        <img src="https://images.unsplash.com/photo-1532981504953-eb8fc68625ba?w=400&q=80" class="absolute inset-0 w-full h-full object-cover blur-md opacity-50 scale-110">
+                        <!-- Center video focus -->
+                        <div class="absolute inset-0 flex items-center justify-center p-2">
+                            <img src="https://images.unsplash.com/photo-1532981504953-eb8fc68625ba?w=400&q=80" class="w-full h-auto shadow-lg border border-black/50">
+                        </div>
+                        <!-- Dynamic Subtitle -->
+                        <div class="absolute bottom-16 w-full text-center px-4">
+                            <span class="bg-[#e00000] text-white font-black text-xl italic uppercase tracking-wider px-2 border-2 border-black transform -skew-x-12 inline-block shadow-lg">DOMINANCE</span>
+                        </div>
+                        <!-- Playback controls -->
+                        <div class="absolute bottom-0 w-full h-10 bg-gradient-to-t from-black/80 to-transparent flex items-center px-3 opacity-0 group-hover:opacity-100 transition">
+                            <span class="text-white text-xs">▶</span>
+                            <div class="flex-1 mx-3 h-1 bg-white/30 rounded-full"><div class="w-1/3 h-full bg-red-600 rounded-full"></div></div>
+                            <span class="text-white text-[10px] font-mono">0:14 / 0:58</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="h-48 border-t border-white/10 bg-[#1e1e1e] flex flex-col">
+                    <div class="flex border-b border-white/10">
+                        <button class="flex-1 py-1.5 text-[11px] font-medium text-mac-accent border-b border-mac-accent bg-white/5">Assets (4)</button>
+                        <button class="flex-1 py-1.5 text-[11px] text-mac-muted hover:text-white">Metadata</button>
+                    </div>
+                    <div class="p-3 flex gap-2 overflow-x-auto">
+                        <div class="w-16 h-16 bg-black rounded border border-white/10 shrink-0 flex items-center justify-center text-[10px] text-mac-muted">Vid 1</div>
+                        <div class="w-16 h-16 bg-black rounded border border-white/10 shrink-0 flex items-center justify-center text-[10px] text-mac-muted">Vid 2</div>
+                        <div class="w-16 h-16 bg-black rounded border border-white/10 shrink-0 flex items-center justify-center text-[10px] text-mac-muted text-center border-dashed">+ Local</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- System Loader Overlay (For view transitions) -->
+        <div id="loader" class="absolute inset-0 bg-black/60 backdrop-blur-md z-[999] hidden items-center justify-center flex-col">
+            <div class="w-8 h-8 border-3 border-white/20 border-t-mac-accent rounded-full animate-spin mb-3"></div>
+            <div id="loader-text" class="text-[12px] font-medium text-white shadow-sm">Loading...</div>
+        </div>
+
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // Set macOS title dynamically based on view
+        const titles = {
+            1: "hyogen.ai - Activation",
+            2: "hyogen.ai - Preferences",
+            3: "hyogen.ai - Channels",
+            4: "hyogen.ai - Studio (F1 Insights)"
+        };
+
+        function nav(viewId) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            document.getElementById('window-title').innerText = titles[viewId];
+        }
+
+        // Simulate application loading states between screens
+        function simulateLoad(targetView, text) {
+            const loader = document.getElementById('loader');
+            document.getElementById('loader-text').innerText = text;
+            loader.style.display = 'flex';
+            
+            setTimeout(() => {
+                loader.style.display = 'none';
+                nav(targetView);
+            }, 800);
+        }
+
+        // Enable button when license is typed (simulation)
+        function checkActivation() {
+            const btn = document.getElementById('activate-btn');
+            const input = document.getElementById('license-input');
+            if(input.value.length > 0) {
+                btn.innerText = "Activate License";
+                btn.classList.remove('btn-mac-secondary');
+                btn.classList.add('btn-mac-primary');
+            } else {
+                btn.innerText = "Start 14-Day Trial";
+                btn.classList.add('btn-mac-secondary');
+                btn.classList.remove('btn-mac-primary');
+            }
+        }
+
+        // Simulate the complex local render workflow
+        function triggerRender() {
+            document.getElementById('render-btn').disabled = true;
+            document.getElementById('render-btn').innerText = "Processing...";
+            document.getElementById('render-btn').classList.add('opacity-50');
+            
+            const processDiv = document.getElementById('render-process');
+            processDiv.classList.remove('hidden');
+            
+            const bar = document.getElementById('progress-bar');
+            const text = document.getElementById('progress-text');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 10) + 1;
+                if(progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    // Show video
+                    document.getElementById('video-empty').style.display = 'none';
+                    document.getElementById('video-player').classList.remove('hidden');
+                    
+                    // Trigger Native Mac Notification Simulation
+                    triggerNotification();
+                }
+                bar.style.width = progress + '%';
+                text.innerText = progress + '%';
+            }, 300);
+        }
+
+        function triggerNotification() {
+            const notif = document.getElementById('mac-notification');
+            notif.classList.remove('translate-x-[120%]');
+            // Play a synthetic sound simulation (browser requires interaction first, but we assume they clicked the button)
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note (glass-like ding)
+                osc.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            } catch(e) {}
+            
+            setTimeout(() => {
+                notif.classList.add('translate-x-[120%]');
+            }, 5000);
+        }
+
+    </script>
+</body>
+</html>
