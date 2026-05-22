@@ -26,3 +26,28 @@ export function recordRunTraceEvent(
   storage.setItem(RUN_TRACE_STORAGE_KEY, JSON.stringify([...events, recorded]));
   return recorded;
 }
+
+export function redactedRunTraceJson(storage: Storage = window.localStorage): string {
+  return JSON.stringify(redactSecrets(listRunTraceEvents(storage)), null, 2);
+}
+
+function redactSecrets(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(redactSecrets);
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nested]) => [
+        key,
+        isSecretKey(key) ? '[redacted]' : redactSecrets(nested),
+      ]),
+    );
+  }
+
+  return value;
+}
+
+function isSecretKey(key: string): boolean {
+  return /api[-_]?key|token|secret|password/i.test(key);
+}

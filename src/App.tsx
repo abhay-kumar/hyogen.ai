@@ -1,11 +1,13 @@
 import { FormEvent, useState } from 'react';
 import { getHealthSnapshot } from './health';
+import { redactedRunTraceJson } from './runTrace';
 import { loadWorkspace, saveWorkspace } from './workspace';
 
 export function App() {
   const health = getHealthSnapshot();
   const [workspace, setWorkspace] = useState(() => loadWorkspace());
   const [workspacePath, setWorkspacePath] = useState('');
+  const [showRunTrace, setShowRunTrace] = useState(false);
 
   function chooseWorkspace(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -62,6 +64,14 @@ export function App() {
           <p>No Projects yet.</p>
         </section>
       ) : null}
+
+      <section aria-label="Run Trace">
+        <h2>Run Trace</h2>
+        <button type="button" onClick={() => setShowRunTrace((visible) => !visible)}>
+          {showRunTrace ? 'Hide Run Trace' : 'Show Run Trace'}
+        </button>
+        {showRunTrace ? <pre>{redactedRunTraceJson()}</pre> : null}
+      </section>
     </main>
   );
 }
