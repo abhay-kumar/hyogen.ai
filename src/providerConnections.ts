@@ -1,4 +1,4 @@
-import { CredentialRef, storeCredential } from './credentialManager';
+import { CredentialRef, deleteCredential, storeCredential } from './credentialManager';
 import { recordRunTraceEvent } from './runTrace';
 
 const PROVIDER_CONNECTIONS_STORAGE_KEY = 'hyogen.providerConnections';
@@ -37,4 +37,23 @@ export function createProviderConnection(
     storage,
   );
   return connection;
+}
+
+export function deleteProviderConnection(id: string, storage: Storage = window.localStorage): void {
+  const connections = listProviderConnections(storage);
+  const connection = connections.find((candidate) => candidate.id === id);
+  if (!connection) return;
+  deleteCredential(connection.credentialRef, storage);
+  storage.setItem(
+    PROVIDER_CONNECTIONS_STORAGE_KEY,
+    JSON.stringify(connections.filter((candidate) => candidate.id !== id)),
+  );
+  recordRunTraceEvent(
+    {
+      type: 'provider.connection.deleted',
+      summary: 'Provider Connection deleted',
+      data: { providerName: connection.name, credentialRef: connection.credentialRef },
+    },
+    storage,
+  );
 }

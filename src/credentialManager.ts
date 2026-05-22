@@ -19,6 +19,10 @@ export function deleteCredential(ref: CredentialRef, storage: Storage = window.l
   storage.setItem(DEV_KEYCHAIN_STORAGE_KEY, JSON.stringify(keychain));
 }
 
+export function credentialExists(ref: CredentialRef, storage: Storage = window.localStorage): boolean {
+  return Object.prototype.hasOwnProperty.call(readDevKeychain(storage), ref);
+}
+
 function readDevKeychain(storage: Storage): Record<string, string> {
   const encoded = storage.getItem(DEV_KEYCHAIN_STORAGE_KEY);
   return encoded ? (JSON.parse(encoded) as Record<string, string>) : {};

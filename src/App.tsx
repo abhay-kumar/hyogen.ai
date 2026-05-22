@@ -2,7 +2,11 @@ import { FormEvent, useState } from 'react';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
 import { getHealthSnapshot } from './health';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
-import { createProviderConnection, listProviderConnections } from './providerConnections';
+import {
+  createProviderConnection,
+  deleteProviderConnection,
+  listProviderConnections,
+} from './providerConnections';
 import { redactedRunTraceJson } from './runTrace';
 import { loadWorkspace, saveWorkspace } from './workspace';
 
@@ -80,6 +84,11 @@ export function App() {
     setIsCreatingProviderConnection(false);
   }
 
+  function removeProviderConnection(id: string) {
+    deleteProviderConnection(id);
+    setProviderConnections(listProviderConnections());
+  }
+
   const activeBrandProfiles = brandProfiles.filter((profile) => !profile.archived);
   const archivedBrandProfiles = brandProfiles.filter((profile) => profile.archived);
   const providerCapabilities = resolveProviderCapabilities(providerConnections);
@@ -137,6 +146,9 @@ export function App() {
                 <li key={connection.id}>
                   <strong>{connection.name}</strong>
                   <p>{connection.credentialRef}</p>
+                  <button type="button" onClick={() => removeProviderConnection(connection.id)}>
+                    Delete {connection.name}
+                  </button>
                 </li>
               ))}
             </ul>
