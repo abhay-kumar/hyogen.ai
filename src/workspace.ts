@@ -1,3 +1,5 @@
+import { recordRunTraceEvent } from './runTrace';
+
 const WORKSPACE_STORAGE_KEY = 'hyogen.workspace.path';
 
 export type Workspace = {
@@ -12,5 +14,13 @@ export function loadWorkspace(storage: Storage = window.localStorage): Workspace
 export function saveWorkspace(path: string, storage: Storage = window.localStorage): Workspace {
   const workspace = { path: path.trim() };
   storage.setItem(WORKSPACE_STORAGE_KEY, workspace.path);
+  recordRunTraceEvent(
+    {
+      type: 'workspace.selected',
+      summary: 'Workspace selected',
+      data: { workspacePath: workspace.path },
+    },
+    storage,
+  );
   return workspace;
 }
