@@ -18,6 +18,7 @@ import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
 import {
+  createYouTubeSearchCandidate,
   importLocalImageCandidate,
   importLocalVideoCandidate,
   listMediaCandidates,
@@ -75,6 +76,7 @@ export function App() {
   const [videoContactSheets, setVideoContactSheets] = useState(() => listVideoContactSheets());
   const [localImagePath, setLocalImagePath] = useState('');
   const [localVideoPath, setLocalVideoPath] = useState('');
+  const [publicMediaQuery, setPublicMediaQuery] = useState('');
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
   const [qualityFindings, setQualityFindings] = useState<QualityFinding[]>([]);
@@ -143,6 +145,13 @@ export function App() {
     importLocalVideoCandidate(localVideoPath);
     setMediaCandidates(listMediaCandidates());
     setLocalVideoPath('');
+  }
+
+  function runMockYouTubeSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    createYouTubeSearchCandidate(publicMediaQuery);
+    setMediaCandidates(listMediaCandidates());
+    setPublicMediaQuery('');
   }
 
   function selectRenderInput(candidate: MediaCandidate) {
@@ -443,13 +452,24 @@ export function App() {
             />
             <button type="submit">Import Local Video</button>
           </form>
+          {publicMediaAcknowledged ? (
+            <form onSubmit={runMockYouTubeSearch}>
+              <label htmlFor="public-media-query">Public media query</label>
+              <input
+                id="public-media-query"
+                value={publicMediaQuery}
+                onChange={(event) => setPublicMediaQuery(event.currentTarget.value)}
+              />
+              <button type="submit">Run Mock YouTube Search</button>
+            </form>
+          ) : null}
           {mediaCandidates.length > 0 ? (
             <>
               <h2>Media Candidates</h2>
               <ul>
                 {mediaCandidates.map((candidate) => (
                   <li key={candidate.id}>
-                    {candidate.sourcePath} — {candidate.status}
+                    {candidate.sourceUrl ?? candidate.sourcePath} — {candidate.rightsLabel ?? candidate.status}
                     {candidate.kind === 'video' ? (
                       <>
                         <p>
