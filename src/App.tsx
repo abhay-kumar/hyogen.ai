@@ -28,7 +28,11 @@ import {
 import { checkMockProviderHealth, ProviderHealthResult } from './providerHealth';
 import { redactedRunTraceJson } from './runTrace';
 import { generateMockCitedScriptDraft, ScriptDraft } from './scriptDrafts';
-import { listSourceMaterial, materializeSourceUrls } from './sourceMaterial';
+import {
+  listSourceMaterial,
+  materializeDiscoveryLeadUrls,
+  materializeSourceUrls,
+} from './sourceMaterial';
 import { respondWithMockHarness, StudioMessage } from './studioChat';
 import { loadWorkspace, saveWorkspace } from './workspace';
 
@@ -213,6 +217,11 @@ export function App() {
     setResearchQuery('');
   }
 
+  function materializeDiscoveryLeads() {
+    materializeDiscoveryLeadUrls(discoveryLeads.map((lead) => lead.url));
+    setSourceMaterial(listSourceMaterial());
+  }
+
   const activeBrandProfiles = brandProfiles.filter((profile) => !profile.archived);
   const archivedBrandProfiles = brandProfiles.filter((profile) => profile.archived);
   const providerCapabilities = resolveProviderCapabilities(providerConnections);
@@ -224,6 +233,12 @@ export function App() {
   const latestApprovedScript = approvalDecisions
     .filter((approval) => approval.target.startsWith('Script Version') && approval.decision === 'approved')
     .at(-1);
+  const providerSearchSourceMaterial = sourceMaterial.filter(
+    (source) => source.projectId === 'provider-native-search',
+  );
+  const projectSourceMaterial = sourceMaterial.filter(
+    (source) => source.projectId !== 'provider-native-search',
+  );
 
   return (
     <main aria-label="hyogen.ai local shell">
@@ -412,6 +427,21 @@ export function App() {
                   <li key={lead.id}>{lead.url}</li>
                 ))}
               </ul>
+              <button type="button" onClick={materializeDiscoveryLeads}>
+                Materialize Discovery Leads
+              </button>
+            </>
+          ) : null}
+          {providerSearchSourceMaterial.length > 0 ? (
+            <>
+              <h2>Source Material</h2>
+              <ul>
+                {providerSearchSourceMaterial.map((source) => (
+                  <li key={source.id}>
+                    {source.url} — {source.status}
+                  </li>
+                ))}
+              </ul>
             </>
           ) : null}
 
@@ -571,11 +601,11 @@ export function App() {
               ))}
             </ul>
           ) : null}
-          {sourceMaterial.length > 0 ? (
+          {projectSourceMaterial.length > 0 ? (
             <>
               <h3>Source Material</h3>
               <ul>
-                {sourceMaterial.map((source) => (
+                {projectSourceMaterial.map((source) => (
                   <li key={source.id}>
                     {source.url} — {source.status}
                   </li>
