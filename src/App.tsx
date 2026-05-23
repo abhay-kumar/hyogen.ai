@@ -24,6 +24,7 @@ import {
   type MediaCandidate,
 } from './mediaPool';
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
+import { generateVideoContactSheet, listVideoContactSheets } from './videoContactSheets';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import { createSourceOnlyProject, listProjects } from './projects';
 import { evaluateScriptQuality, QualityFinding } from './qualityFindings';
@@ -67,6 +68,7 @@ export function App() {
   const [projects, setProjects] = useState(() => listProjects());
   const [mediaCandidates, setMediaCandidates] = useState(() => listMediaCandidates());
   const [renderInputs, setRenderInputs] = useState(() => listRenderInputs());
+  const [videoContactSheets, setVideoContactSheets] = useState(() => listVideoContactSheets());
   const [localImagePath, setLocalImagePath] = useState('');
   const [localVideoPath, setLocalVideoPath] = useState('');
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
@@ -142,6 +144,11 @@ export function App() {
   function selectRenderInput(candidate: MediaCandidate) {
     createRenderInputFromMediaCandidate(candidate);
     setRenderInputs(listRenderInputs());
+  }
+
+  function generateContactSheet(candidate: MediaCandidate) {
+    generateVideoContactSheet(candidate);
+    setVideoContactSheets(listVideoContactSheets());
   }
 
   function startSourceOnlyProject(event: FormEvent<HTMLFormElement>) {
@@ -419,13 +426,30 @@ export function App() {
                   <li key={candidate.id}>
                     {candidate.sourcePath} — {candidate.status}
                     {candidate.kind === 'video' ? (
-                      <p>
-                        FFprobe: {candidate.durationSeconds}s, thumbnail: {candidate.thumbnailPath}
-                      </p>
+                      <>
+                        <p>
+                          FFprobe: {candidate.durationSeconds}s, thumbnail: {candidate.thumbnailPath}
+                        </p>
+                        <button type="button" onClick={() => generateContactSheet(candidate)}>
+                          Generate Contact Sheet for {candidate.sourcePath.split('/').at(-1)}
+                        </button>
+                      </>
                     ) : null}
                     <button type="button" onClick={() => selectRenderInput(candidate)}>
                       Select {candidate.sourcePath.split('/').at(-1)} as Render Input
                     </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          {videoContactSheets.length > 0 ? (
+            <>
+              <h2>Video Contact Sheets</h2>
+              <ul>
+                {videoContactSheets.map((sheet) => (
+                  <li key={sheet.id}>
+                    {sheet.contactSheetPath} — keyframes: {sheet.keyframes.join(', ')}
                   </li>
                 ))}
               </ul>
