@@ -20,7 +20,7 @@ import {
   DeepAgentsHelloResult,
   runDeepAgentsHello,
 } from './deepAgentsHealth';
-import { exportSafeDebugBundle, listDebugBundles } from './debugBundle';
+import { exportFullDebugBundle, exportSafeDebugBundle, listDebugBundles } from './debugBundle';
 import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { executeCleanupPlan, generateCleanupPlan, listCleanupPlans } from './cleanup';
@@ -111,6 +111,7 @@ export function App() {
   const [deepAgentsHealth, setDeepAgentsHealth] = useState<DeepAgentsHealth | null>(null);
   const [deepAgentsHello, setDeepAgentsHello] = useState<DeepAgentsHelloResult | null>(null);
   const [debugBundles, setDebugBundles] = useState(() => listDebugBundles());
+  const [fullDebugWarningAcknowledged, setFullDebugWarningAcknowledged] = useState(false);
   const [brandProfiles, setBrandProfiles] = useState(() => listBrandProfiles());
   const [isCreatingBrandProfile, setIsCreatingBrandProfile] = useState(false);
   const [brandProfileName, setBrandProfileName] = useState('');
@@ -201,6 +202,11 @@ export function App() {
 
   function exportSafeDebug() {
     exportSafeDebugBundle();
+    setDebugBundles(listDebugBundles());
+  }
+
+  function exportFullDebug() {
+    exportFullDebugBundle();
     setDebugBundles(listDebugBundles());
   }
 
@@ -1627,8 +1633,18 @@ export function App() {
         <button type="button" onClick={exportSafeDebug}>
           Export Safe Debug Bundle
         </button>
+        <button type="button" onClick={() => setFullDebugWarningAcknowledged(true)}>
+          Acknowledge Full Debug Bundle Warning
+        </button>
+        {fullDebugWarningAcknowledged ? (
+          <button type="button" onClick={exportFullDebug}>
+            Export Full Debug Bundle
+          </button>
+        ) : null}
         {debugBundles.map((bundle) => (
-          <p key={bundle.id}>Safe Debug Bundle: {bundle.path}</p>
+          <p key={bundle.id}>
+            {bundle.kind === 'full' ? 'Full Debug Bundle' : 'Safe Debug Bundle'}: {bundle.path}
+          </p>
         ))}
         {showRunTrace ? <pre>{redactedRunTraceJson()}</pre> : null}
       </section>
