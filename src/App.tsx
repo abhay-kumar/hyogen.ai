@@ -18,6 +18,7 @@ import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
 import {
+  createPublicFreeImageSearchCandidate,
   createYouTubeSearchCandidate,
   indexDownloadedVideoCandidate,
   importLocalImageCandidate,
@@ -153,6 +154,12 @@ export function App() {
   function runMockYouTubeSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     createYouTubeSearchCandidate(publicMediaQuery);
+    setMediaCandidates(listMediaCandidates());
+    setPublicMediaQuery('');
+  }
+
+  function runMockPublicFreeImageSearch() {
+    createPublicFreeImageSearchCandidate(publicMediaQuery);
     setMediaCandidates(listMediaCandidates());
     setPublicMediaQuery('');
   }
@@ -473,6 +480,9 @@ export function App() {
                 onChange={(event) => setPublicMediaQuery(event.currentTarget.value)}
               />
               <button type="submit">Run Mock YouTube Search</button>
+              <button type="button" onClick={runMockPublicFreeImageSearch}>
+                Run Mock Public-Free Image Search
+              </button>
             </form>
           ) : null}
           {mediaCandidates.length > 0 ? (

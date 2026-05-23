@@ -7,7 +7,7 @@ export type MediaCandidate = {
   kind: 'image' | 'video';
   sourcePath: string;
   sourceUrl?: string;
-  origin?: 'local' | 'youtube-search' | 'downloaded';
+  origin?: 'local' | 'youtube-search' | 'downloaded' | 'public-free-image-search';
   rightsLabel?: string;
   status: 'referenced' | 'indexed';
   copied: boolean;
@@ -93,6 +93,35 @@ export function createYouTubeSearchCandidate(
     {
       type: 'publicMedia.youtubeSearch.candidateCreated',
       summary: 'Mock YouTube search created public Media Candidate',
+      data: { sourceUrl, rightsLabel: candidate.rightsLabel },
+    },
+    storage,
+  );
+  return candidate;
+}
+
+export function createPublicFreeImageSearchCandidate(
+  query: string,
+  storage: Storage = window.localStorage,
+): MediaCandidate {
+  const candidates = listMediaCandidates(storage);
+  const slug = query.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const sourceUrl = `https://images.example/free/${slug}.jpg`;
+  const candidate: MediaCandidate = {
+    id: `media-candidate-${candidates.length + 1}`,
+    kind: 'image',
+    sourcePath: sourceUrl,
+    sourceUrl,
+    origin: 'public-free-image-search',
+    rightsLabel: 'public-free: attribution-required',
+    status: 'referenced',
+    copied: false,
+  };
+  storage.setItem(MEDIA_CANDIDATES_STORAGE_KEY, JSON.stringify([...candidates, candidate]));
+  recordRunTraceEvent(
+    {
+      type: 'publicMedia.freeImageSearch.candidateCreated',
+      summary: 'Mock public/free image search created Media Candidate',
       data: { sourceUrl, rightsLabel: candidate.rightsLabel },
     },
     storage,
