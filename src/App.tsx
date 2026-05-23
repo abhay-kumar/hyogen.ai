@@ -22,6 +22,7 @@ import {
 } from './deepAgentsHealth';
 import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
+import { generateCleanupPlan, listCleanupPlans } from './cleanup';
 import { listFinalPackages, exportFinalPackages } from './finalPackage';
 import { getHealthSnapshot } from './health';
 import { listImageGenerationRequests, requestImageGenerationApproval } from './imageGeneration';
@@ -121,6 +122,7 @@ export function App() {
   const [renders, setRenders] = useState(() => listRenders());
   const [metadataPackages, setMetadataPackages] = useState(() => listMetadataPackages());
   const [finalPackages, setFinalPackages] = useState(() => listFinalPackages());
+  const [cleanupPlans, setCleanupPlans] = useState(() => listCleanupPlans());
   const [metadataRevision, setMetadataRevision] = useState('');
   const [technicalQaFindings, setTechnicalQaFindings] = useState(() => listTechnicalQaFindings());
   const [semanticQaFindings, setSemanticQaFindings] = useState(() => listSemanticQaFindings());
@@ -402,6 +404,11 @@ export function App() {
   function exportFinalPackage() {
     exportFinalPackages();
     setFinalPackages(listFinalPackages());
+  }
+
+  function createCleanupPlan() {
+    generateCleanupPlan();
+    setCleanupPlans(listCleanupPlans());
   }
 
   function submitMetadataRevision(event: FormEvent<HTMLFormElement>) {
@@ -1247,6 +1254,22 @@ export function App() {
             <button type="button" onClick={exportFinalPackage}>
               Export Final Package
             </button>
+          ) : null}
+          {finalPackages.length > 0 ? (
+            <button type="button" onClick={createCleanupPlan}>
+              Generate Cleanup Plan
+            </button>
+          ) : null}
+          {cleanupPlans.length > 0 ? (
+            <>
+              <h3>Cleanup Plans</h3>
+              {cleanupPlans.map((plan) => (
+                <article key={plan.id}>
+                  <p>Cleanup Plan: retain Render Inputs</p>
+                  <p>Proposed deletions: {plan.proposedDeletions.join(', ')}</p>
+                </article>
+              ))}
+            </>
           ) : null}
           {finalPackages.length > 0 ? (
             <>
