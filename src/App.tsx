@@ -95,6 +95,7 @@ import {
 import { respondWithMockHarness, StudioMessage } from './studioChat';
 import { listTechnicalQaFindings, runTechnicalQa } from './technicalQa';
 import { generateMockTtsAudio, listAudioArtifacts } from './ttsAudio';
+import { scanWatchFolder } from './watchFolders';
 import { loadWorkspace, saveWorkspace } from './workspace';
 import { listYtdlpDownloads, runYtdlpDownloadStub } from './ytdlpDownloads';
 
@@ -145,6 +146,8 @@ export function App() {
   const [ytdlpDownloads, setYtdlpDownloads] = useState(() => listYtdlpDownloads());
   const [localImagePath, setLocalImagePath] = useState('');
   const [localVideoPath, setLocalVideoPath] = useState('');
+  const [watchFolderPath, setWatchFolderPath] = useState('');
+  const [watchFolderImports, setWatchFolderImports] = useState<string[]>([]);
   const [publicMediaQuery, setPublicMediaQuery] = useState('');
   const [imageGenerationRequests, setImageGenerationRequests] = useState(() =>
     listImageGenerationRequests(),
@@ -221,6 +224,13 @@ export function App() {
     createRenderInputFromMediaCandidate(candidate);
     setMediaCandidates(listMediaCandidates());
     setRenderInputs(listRenderInputs());
+  }
+
+  function scanMediaWatchFolder(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const imported = scanWatchFolder(watchFolderPath);
+    setWatchFolderImports(imported.map((candidate) => candidate.title ?? candidate.sourcePath));
+    setMediaCandidates(listMediaCandidates());
   }
 
   function importLocalImage(event: FormEvent<HTMLFormElement>) {
@@ -758,6 +768,18 @@ export function App() {
           <button type="button" onClick={requestGeneratedImageApproval}>
             Request Image Generation Approval
           </button>
+          <form onSubmit={scanMediaWatchFolder}>
+            <label htmlFor="watch-folder-path">Watch folder path</label>
+            <input
+              id="watch-folder-path"
+              value={watchFolderPath}
+              onChange={(event) => setWatchFolderPath(event.currentTarget.value)}
+            />
+            <button type="submit">Scan Watch Folder</button>
+          </form>
+          {watchFolderImports.map((title) => (
+            <p key={title}>Watch Folder imported: {title}</p>
+          ))}
           {imageGenerationRequests.length > 0 ? (
             <ul>
               {imageGenerationRequests.map((request) => (

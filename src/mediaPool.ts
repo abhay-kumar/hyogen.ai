@@ -7,6 +7,7 @@ export type MediaCandidate = {
   kind: 'image' | 'video';
   sourcePath: string;
   sourceUrl?: string;
+  title?: string;
   origin?:
     | 'local'
     | 'youtube-search'
@@ -41,6 +42,7 @@ function importLocalMediaCandidate(
     origin: 'local',
     status: 'referenced',
     copied: false,
+    title: trimmedPath.split('/').at(-1) ?? trimmedPath,
     ...(kind === 'video'
       ? { durationSeconds: 12.4, thumbnailPath: `thumbnails/${fileBase}.jpg` }
       : {}),
