@@ -207,6 +207,9 @@ export function App() {
   const archivedBrandProfiles = brandProfiles.filter((profile) => profile.archived);
   const providerCapabilities = resolveProviderCapabilities(providerConnections);
   const degradedModeWarning = fullAgenticModeWarning(providerCapabilities);
+  const searchDiscoveryReady = providerCapabilities.some(
+    (capability) => capability.name === 'Search/discovery' && capability.status === 'ready',
+  );
   const guidedWorkflowTimeline = getMockGuidedWorkflowTimeline();
   const latestApprovedScript = approvalDecisions
     .filter((approval) => approval.target.startsWith('Script Version') && approval.decision === 'approved')
@@ -608,6 +611,22 @@ export function App() {
           ) : null}
           {isCreatingProject ? (
             <form onSubmit={startSourceOnlyProject}>
+              <fieldset>
+                <legend>Project mode</legend>
+                <label htmlFor="source-only-mode">Source-Only Mode</label>
+                <input id="source-only-mode" type="radio" name="project-mode" checked readOnly />
+                <label htmlFor="full-agentic-mode">Full Agentic Mode</label>
+                <input
+                  id="full-agentic-mode"
+                  type="radio"
+                  name="project-mode"
+                  disabled={!searchDiscoveryReady}
+                  readOnly
+                />
+                {!searchDiscoveryReady ? (
+                  <p>Full Agentic Mode requires search/discovery capability.</p>
+                ) : null}
+              </fieldset>
               <label htmlFor="project-prompt">Project prompt</label>
               <input
                 id="project-prompt"
