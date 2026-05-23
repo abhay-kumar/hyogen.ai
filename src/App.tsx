@@ -98,6 +98,7 @@ import {
 import { listFailedStages, listStageRetries, retryFailedStage } from './stageRetries';
 import { respondWithMockHarness, StudioMessage } from './studioChat';
 import { listTechnicalQaFindings, runTechnicalQa } from './technicalQa';
+import { filterRunTraceEvents, type TraceFilters } from './traceFilters';
 import { generateMockTtsAudio, listAudioArtifacts } from './ttsAudio';
 import { scanWatchFolder } from './watchFolders';
 import { loadWorkspace, saveWorkspace } from './workspace';
@@ -108,6 +109,8 @@ export function App() {
   const [workspace, setWorkspace] = useState(() => loadWorkspace());
   const [workspacePath, setWorkspacePath] = useState('');
   const [showRunTrace, setShowRunTrace] = useState(false);
+  const [traceFilters, setTraceFilters] = useState<TraceFilters>({});
+  const [filteredTraceEvents, setFilteredTraceEvents] = useState(() => filterRunTraceEvents({}));
   const [deepAgentsHealth, setDeepAgentsHealth] = useState<DeepAgentsHealth | null>(null);
   const [deepAgentsHello, setDeepAgentsHello] = useState<DeepAgentsHelloResult | null>(null);
   const [debugBundles, setDebugBundles] = useState(() => listDebugBundles());
@@ -198,6 +201,11 @@ export function App() {
 
   function runDeepAgentsHelloCheck() {
     setDeepAgentsHello(runDeepAgentsHello());
+  }
+
+  function applyTraceFilters(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFilteredTraceEvents(filterRunTraceEvents(traceFilters));
   }
 
   function exportSafeDebug() {
@@ -1630,6 +1638,48 @@ export function App() {
         <button type="button" onClick={() => setShowRunTrace((visible) => !visible)}>
           {showRunTrace ? 'Hide Run Trace' : 'Show Run Trace'}
         </button>
+        <form onSubmit={applyTraceFilters}>
+          <label htmlFor="trace-stage-filter">Trace stage filter</label>
+          <input
+            id="trace-stage-filter"
+            value={traceFilters.stage ?? ''}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setTraceFilters((filters) => ({ ...filters, stage: value }));
+            }}
+          />
+          <label htmlFor="trace-provider-filter">Trace provider filter</label>
+          <input
+            id="trace-provider-filter"
+            value={traceFilters.provider ?? ''}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setTraceFilters((filters) => ({ ...filters, provider: value }));
+            }}
+          />
+          <label htmlFor="trace-tool-filter">Trace tool filter</label>
+          <input
+            id="trace-tool-filter"
+            value={traceFilters.tool ?? ''}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setTraceFilters((filters) => ({ ...filters, tool: value }));
+            }}
+          />
+          <label htmlFor="trace-child-process-filter">Trace child process filter</label>
+          <input
+            id="trace-child-process-filter"
+            value={traceFilters.childProcess ?? ''}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setTraceFilters((filters) => ({ ...filters, childProcess: value }));
+            }}
+          />
+          <button type="submit">Apply Trace Filters</button>
+        </form>
+        {filteredTraceEvents.map((event) => (
+          <p key={event.id}>Filtered trace: {event.summary}</p>
+        ))}
         <button type="button" onClick={exportSafeDebug}>
           Export Safe Debug Bundle
         </button>
