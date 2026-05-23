@@ -73,3 +73,25 @@ export function renderSelectedVideoClip(storage: Storage = window.localStorage):
   );
   return render;
 }
+
+export function markRenderFinal(
+  renderId: string,
+  storage: Storage = window.localStorage,
+): RenderArtifact | null {
+  let finalRender: RenderArtifact | null = null;
+  const renders = listRenders(storage).map((render) => {
+    if (render.id !== renderId) return render;
+    finalRender = { ...render, status: 'final' as const };
+    return finalRender;
+  });
+  storage.setItem(RENDERS_STORAGE_KEY, JSON.stringify(renders));
+  recordRunTraceEvent(
+    {
+      type: 'render.markedFinal',
+      summary: 'Render marked final after review',
+      data: { renderId },
+    },
+    storage,
+  );
+  return finalRender;
+}

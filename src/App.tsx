@@ -37,6 +37,7 @@ import {
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
 import {
   listRenders,
+  markRenderFinal,
   renderImageShots,
   renderSelectedVideoClip,
   runFfmpegSmokeRender,
@@ -370,6 +371,11 @@ export function App() {
 
   function renderVideoClip() {
     renderSelectedVideoClip();
+    setRenders(listRenders());
+  }
+
+  function markFinal(renderId: string) {
+    markRenderFinal(renderId);
     setRenders(listRenders());
   }
 
@@ -1185,9 +1191,17 @@ export function App() {
             <>
               <h3>Renders</h3>
               {renders.map((render) => (
-                <p key={render.id}>
-                  Render: {render.path} — {render.summary}
-                </p>
+                <article key={render.id}>
+                  <p>
+                    Render: {render.path} — {render.summary}
+                  </p>
+                  <p>Render review: {render.status === 'final' ? 'final' : 'pending'}</p>
+                  {render.status !== 'final' ? (
+                    <button type="button" onClick={() => markFinal(render.id)}>
+                      Mark Render Final
+                    </button>
+                  ) : null}
+                </article>
               ))}
             </>
           ) : null}
