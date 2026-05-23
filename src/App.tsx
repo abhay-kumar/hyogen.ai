@@ -322,6 +322,11 @@ export function App() {
     setAudioArtifacts(listAudioArtifacts());
   }
 
+  function approveAudioPreview() {
+    recordApprovalDecision({ target: 'Audio Preview', decision: 'approved' });
+    setApprovalDecisions(listApprovalDecisions());
+  }
+
   function approveCurrentVisualPlan(visualPlanId: string) {
     approveVisualPlan(visualPlanId);
     setVisualPlans(listVisualPlans());
@@ -405,6 +410,9 @@ export function App() {
   const latestApprovedScript = approvalDecisions
     .filter((approval) => approval.target.startsWith('Script Version') && approval.decision === 'approved')
     .at(-1);
+  const audioPreviewApproved = approvalDecisions.some(
+    (approval) => approval.target === 'Audio Preview' && approval.decision === 'approved',
+  );
   const providerSearchSourceMaterial = sourceMaterial.filter(
     (source) => source.projectId === 'provider-native-search',
   );
@@ -1050,6 +1058,12 @@ export function App() {
                   Audio Artifact: {artifact.path} — segment {artifact.segmentIndex}
                 </p>
               ))}
+              <p>Audio Preview: {audioPreviewApproved ? 'approved' : 'pending'}</p>
+              {!audioPreviewApproved ? (
+                <button type="button" onClick={approveAudioPreview}>
+                  Approve Audio Preview
+                </button>
+              ) : null}
             </>
           ) : null}
           {visualPlans.length > 0 ? (
