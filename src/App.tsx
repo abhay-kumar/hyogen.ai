@@ -18,6 +18,7 @@ import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
 import {
+  createGoogleImagesFallbackCandidate,
   createPublicFreeImageSearchCandidate,
   createYouTubeSearchCandidate,
   indexDownloadedVideoCandidate,
@@ -160,6 +161,12 @@ export function App() {
 
   function runMockPublicFreeImageSearch() {
     createPublicFreeImageSearchCandidate(publicMediaQuery);
+    setMediaCandidates(listMediaCandidates());
+    setPublicMediaQuery('');
+  }
+
+  function runMockGoogleImagesFallback() {
+    createGoogleImagesFallbackCandidate(publicMediaQuery);
     setMediaCandidates(listMediaCandidates());
     setPublicMediaQuery('');
   }
@@ -482,6 +489,9 @@ export function App() {
               <button type="submit">Run Mock YouTube Search</button>
               <button type="button" onClick={runMockPublicFreeImageSearch}>
                 Run Mock Public-Free Image Search
+              </button>
+              <button type="button" onClick={runMockGoogleImagesFallback}>
+                Run Mock Google Images Fallback
               </button>
             </form>
           ) : null}

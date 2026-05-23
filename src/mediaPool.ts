@@ -7,7 +7,7 @@ export type MediaCandidate = {
   kind: 'image' | 'video';
   sourcePath: string;
   sourceUrl?: string;
-  origin?: 'local' | 'youtube-search' | 'downloaded' | 'public-free-image-search';
+  origin?: 'local' | 'youtube-search' | 'downloaded' | 'public-free-image-search' | 'google-images-fallback';
   rightsLabel?: string;
   status: 'referenced' | 'indexed';
   copied: boolean;
@@ -122,6 +122,35 @@ export function createPublicFreeImageSearchCandidate(
     {
       type: 'publicMedia.freeImageSearch.candidateCreated',
       summary: 'Mock public/free image search created Media Candidate',
+      data: { sourceUrl, rightsLabel: candidate.rightsLabel },
+    },
+    storage,
+  );
+  return candidate;
+}
+
+export function createGoogleImagesFallbackCandidate(
+  query: string,
+  storage: Storage = window.localStorage,
+): MediaCandidate {
+  const candidates = listMediaCandidates(storage);
+  const slug = query.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const sourceUrl = `https://images.example/google/${slug}.jpg`;
+  const candidate: MediaCandidate = {
+    id: `media-candidate-${candidates.length + 1}`,
+    kind: 'image',
+    sourcePath: sourceUrl,
+    sourceUrl,
+    origin: 'google-images-fallback',
+    rightsLabel: 'public-media: unknown-rights',
+    status: 'referenced',
+    copied: false,
+  };
+  storage.setItem(MEDIA_CANDIDATES_STORAGE_KEY, JSON.stringify([...candidates, candidate]));
+  recordRunTraceEvent(
+    {
+      type: 'publicMedia.googleImagesFallback.candidateCreated',
+      summary: 'Mock Google Images fallback created unknown-rights Media Candidate',
       data: { sourceUrl, rightsLabel: candidate.rightsLabel },
     },
     storage,
