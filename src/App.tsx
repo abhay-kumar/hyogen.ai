@@ -7,6 +7,7 @@ import {
   listArtifactVersions,
   markScriptVersionsStale,
 } from './artifactVersions';
+import { listBrandQaFindings, runBrandQa } from './brandQa';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
 import {
   alignCaptionsFromWordTimestampFixture,
@@ -114,6 +115,7 @@ export function App() {
   const [renders, setRenders] = useState(() => listRenders());
   const [technicalQaFindings, setTechnicalQaFindings] = useState(() => listTechnicalQaFindings());
   const [semanticQaFindings, setSemanticQaFindings] = useState(() => listSemanticQaFindings());
+  const [brandQaFindings, setBrandQaFindings] = useState(() => listBrandQaFindings());
   const [selectedMedia, setSelectedMedia] = useState(() => listSelectedMedia());
   const [selectedMediaValidations, setSelectedMediaValidations] = useState(() =>
     listSelectedMediaValidations(),
@@ -393,6 +395,11 @@ export function App() {
   function runSemanticQualityCheck() {
     runSemanticQa();
     setSemanticQaFindings(listSemanticQaFindings());
+  }
+
+  function runBrandQualityCheck() {
+    runBrandQa();
+    setBrandQaFindings(listBrandQaFindings());
   }
 
   function approveDictionaryCorrection(event: FormEvent<HTMLFormElement>) {
@@ -1221,6 +1228,21 @@ export function App() {
                     Run Technical QA
                   </button>
                 </article>
+              ))}
+            </>
+          ) : null}
+          {renders.length > 0 && activeBrandProfiles.length > 0 ? (
+            <button type="button" onClick={runBrandQualityCheck}>
+              Run Brand QA
+            </button>
+          ) : null}
+          {brandQaFindings.length > 0 ? (
+            <>
+              <h3>Brand QA Findings</h3>
+              {brandQaFindings.map((finding) => (
+                <p key={finding.id}>
+                  Brand QA: {finding.check} {finding.status}
+                </p>
               ))}
             </>
           ) : null}
