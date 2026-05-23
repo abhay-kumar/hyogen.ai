@@ -55,6 +55,7 @@ import { approveVisualPlan, generateMockVisualPlan, listVisualPlans } from './vi
 import { generateVoicePerformance, listVoicePerformances } from './voicePerformance';
 import { acknowledgePublicMediaWarnings, isPublicMediaAcknowledged } from './publicMediaRights';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
+import { exportPlatformPreset, listPlatformPresetExports } from './platformPresets';
 import {
   approvePronunciationCorrection,
   listPronunciationCorrections,
@@ -140,6 +141,7 @@ export function App() {
     listSelectedMediaValidations(),
   );
   const [projects, setProjects] = useState(() => listProjects());
+  const [platformPresetExports, setPlatformPresetExports] = useState(() => listPlatformPresetExports());
   const [mediaCandidates, setMediaCandidates] = useState(() => listMediaCandidates());
   const [renderInputs, setRenderInputs] = useState(() => listRenderInputs());
   const [videoContactSheets, setVideoContactSheets] = useState(() => listVideoContactSheets());
@@ -318,6 +320,11 @@ export function App() {
   function duplicateVariation(projectId: string) {
     duplicateProjectVariation(projectId);
     setProjects(listProjects());
+  }
+
+  function exportTikTokPreset(projectId: string) {
+    exportPlatformPreset(projectId, 'TikTok');
+    setPlatformPresetExports(listPlatformPresetExports());
   }
 
   function importProjectManifest(event: FormEvent<HTMLFormElement>) {
@@ -1160,6 +1167,12 @@ export function App() {
             <button type="submit">Import Project Manifest</button>
           </form>
           {deletedProjectPrompt ? <p>Deleted Project: {deletedProjectPrompt}</p> : null}
+          {platformPresetExports.map((presetExport) => (
+            <p key={presetExport.id}>
+              Platform preset exported: {presetExport.platform} / {presetExport.aspectRatio} /{' '}
+              {presetExport.projectPrompt}
+            </p>
+          ))}
           {projects.length > 0 ? (
             <ul>
               {projects.map((project) => (
@@ -1172,6 +1185,11 @@ export function App() {
                   ) : null}
                   {project.variationOfProjectId ? <p>Variation: {project.prompt}</p> : null}
                   {project.archived ? <p>Archived Project: {project.prompt}</p> : null}
+                  {project.variationOfProjectId ? (
+                    <button type="button" onClick={() => exportTikTokPreset(project.id)}>
+                      Export TikTok preset for {project.prompt}
+                    </button>
+                  ) : null}
                   {!project.archived ? (
                     <button type="button" onClick={() => duplicateVariation(project.id)}>
                       Duplicate Variation for {project.prompt}
