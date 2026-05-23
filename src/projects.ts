@@ -8,6 +8,7 @@ export type Project = {
   mode: 'Source-Only Mode';
   brandProfileName: string;
   sourceUrls: string[];
+  archived?: boolean;
 };
 
 export function listProjects(storage: Storage = window.localStorage): Project[] {
@@ -37,4 +38,32 @@ export function createSourceOnlyProject(
     storage,
   );
   return project;
+}
+
+export function archiveProject(projectId: string, storage: Storage = window.localStorage): void {
+  const projects = listProjects(storage).map((project) =>
+    project.id === projectId ? { ...project, archived: true } : project,
+  );
+  storage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+  recordRunTraceEvent(
+    {
+      type: 'project.archived',
+      summary: 'Project archived after confirmation',
+      data: { projectId },
+    },
+    storage,
+  );
+}
+
+export function deleteProject(projectId: string, storage: Storage = window.localStorage): void {
+  const projects = listProjects(storage).filter((project) => project.id !== projectId);
+  storage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+  recordRunTraceEvent(
+    {
+      type: 'project.deleted',
+      summary: 'Project deleted after confirmation',
+      data: { projectId },
+    },
+    storage,
+  );
 }

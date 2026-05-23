@@ -59,7 +59,7 @@ import {
   approvePronunciationCorrection,
   listPronunciationCorrections,
 } from './pronunciationDictionary';
-import { createSourceOnlyProject, listProjects } from './projects';
+import { archiveProject, createSourceOnlyProject, deleteProject, listProjects } from './projects';
 import { evaluateScriptQuality, QualityFinding } from './qualityFindings';
 import {
   createProviderConnection,
@@ -152,6 +152,7 @@ export function App() {
   const [isRequestingScriptChange, setIsRequestingScriptChange] = useState(false);
   const [scriptChangeInstruction, setScriptChangeInstruction] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [deletedProjectPrompt, setDeletedProjectPrompt] = useState<string | null>(null);
   const [projectPrompt, setProjectPrompt] = useState('');
   const [projectSourceUrl, setProjectSourceUrl] = useState('');
   const [selectedProjectBrandProfile, setSelectedProjectBrandProfile] = useState('');
@@ -294,6 +295,17 @@ export function App() {
       );
     }
     return candidate.sourcePath.split('/').at(-1) ?? selection.label;
+  }
+
+  function archiveExistingProject(projectId: string) {
+    archiveProject(projectId);
+    setProjects(listProjects());
+  }
+
+  function deleteExistingProject(projectId: string, prompt: string) {
+    deleteProject(projectId);
+    setProjects(listProjects());
+    setDeletedProjectPrompt(prompt);
   }
 
   function startSourceOnlyProject(event: FormEvent<HTMLFormElement>) {
@@ -1096,6 +1108,7 @@ export function App() {
 
           <h2>Projects</h2>
           {projects.length === 0 ? <p>No Projects yet.</p> : null}
+          {deletedProjectPrompt ? <p>Deleted Project: {deletedProjectPrompt}</p> : null}
           {projects.length > 0 ? (
             <ul>
               {projects.map((project) => (
@@ -1103,6 +1116,17 @@ export function App() {
                   <strong>{project.prompt}</strong>
                   <p>Mode: {project.mode}</p>
                   <p>Brand Profile: {project.brandProfileName}</p>
+                  {project.archived ? <p>Archived Project: {project.prompt}</p> : null}
+                  {!project.archived ? (
+                    <button type="button" onClick={() => archiveExistingProject(project.id)}>
+                      Archive {project.prompt}
+                    </button>
+                  ) : null}
+                  {project.archived ? (
+                    <button type="button" onClick={() => deleteExistingProject(project.id, project.prompt)}>
+                      Delete {project.prompt}
+                    </button>
+                  ) : null}
                   {project.sourceUrls.length > 0 ? (
                     <>
                       <h3>Source URLs</h3>
