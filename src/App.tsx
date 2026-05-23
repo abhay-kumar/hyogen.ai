@@ -60,6 +60,7 @@ import {
 } from './providerConnections';
 import { checkMockProviderHealth, ProviderHealthResult } from './providerHealth';
 import { redactedRunTraceJson } from './runTrace';
+import { listSemanticQaFindings, runSemanticQa } from './semanticQa';
 import {
   approveSelectedMedia,
   assignMediaCandidateToShot,
@@ -112,6 +113,7 @@ export function App() {
   const [captionSets, setCaptionSets] = useState(() => listCaptionSets());
   const [renders, setRenders] = useState(() => listRenders());
   const [technicalQaFindings, setTechnicalQaFindings] = useState(() => listTechnicalQaFindings());
+  const [semanticQaFindings, setSemanticQaFindings] = useState(() => listSemanticQaFindings());
   const [selectedMedia, setSelectedMedia] = useState(() => listSelectedMedia());
   const [selectedMediaValidations, setSelectedMediaValidations] = useState(() =>
     listSelectedMediaValidations(),
@@ -386,6 +388,11 @@ export function App() {
     if (!render) return;
     runTechnicalQa(render);
     setTechnicalQaFindings(listTechnicalQaFindings());
+  }
+
+  function runSemanticQualityCheck() {
+    runSemanticQa();
+    setSemanticQaFindings(listSemanticQaFindings());
   }
 
   function approveDictionaryCorrection(event: FormEvent<HTMLFormElement>) {
@@ -1214,6 +1221,21 @@ export function App() {
                     Run Technical QA
                   </button>
                 </article>
+              ))}
+            </>
+          ) : null}
+          {captionSets.length > 0 && visualPlans.length > 0 ? (
+            <button type="button" onClick={runSemanticQualityCheck}>
+              Run Semantic QA
+            </button>
+          ) : null}
+          {semanticQaFindings.length > 0 ? (
+            <>
+              <h3>Semantic QA Findings</h3>
+              {semanticQaFindings.map((finding) => (
+                <p key={finding.id}>
+                  Semantic QA: {finding.check} {finding.status}
+                </p>
               ))}
             </>
           ) : null}
