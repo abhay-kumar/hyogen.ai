@@ -32,6 +32,7 @@ import {
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
 import { generateVideoContactSheet, listVideoContactSheets } from './videoContactSheets';
 import { approveVisualPlan, generateMockVisualPlan, listVisualPlans } from './visualPlans';
+import { generateVoicePerformance, listVoicePerformances } from './voicePerformance';
 import { acknowledgePublicMediaWarnings, isPublicMediaAcknowledged } from './publicMediaRights';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import { createSourceOnlyProject, listProjects } from './projects';
@@ -88,6 +89,7 @@ export function App() {
   const [artifactVersions, setArtifactVersions] = useState(() => listArtifactVersions());
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
   const [visualPlans, setVisualPlans] = useState(() => listVisualPlans());
+  const [voicePerformances, setVoicePerformances] = useState(() => listVoicePerformances());
   const [selectedMedia, setSelectedMedia] = useState(() => listSelectedMedia());
   const [selectedMediaValidations, setSelectedMediaValidations] = useState(() =>
     listSelectedMediaValidations(),
@@ -304,6 +306,11 @@ export function App() {
     const content = selectedArtifactVersion?.content ?? artifactVersions.at(-1)?.content ?? '';
     generateMockVisualPlan(content);
     setVisualPlans(listVisualPlans());
+  }
+
+  function generateApprovedVoicePerformance() {
+    generateVoicePerformance(latestApprovedScript?.target ?? 'Script Version 1');
+    setVoicePerformances(listVoicePerformances());
   }
 
   function approveCurrentVisualPlan(visualPlanId: string) {
@@ -1007,6 +1014,20 @@ export function App() {
               <button type="button" onClick={generateVisualPlan}>
                 Generate Visual Plan
               </button>
+              <button type="button" onClick={generateApprovedVoicePerformance}>
+                Generate Voice Performance
+              </button>
+            </>
+          ) : null}
+          {voicePerformances.length > 0 ? (
+            <>
+              <h3>Voice Performances</h3>
+              {voicePerformances.map((performance) => (
+                <p key={performance.id}>
+                  Voice Performance: {performance.tone}, pace {performance.pace}, emphasis{' '}
+                  {performance.emphasis}
+                </p>
+              ))}
             </>
           ) : null}
           {visualPlans.length > 0 ? (
