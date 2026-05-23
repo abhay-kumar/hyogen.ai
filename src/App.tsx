@@ -52,6 +52,7 @@ import {
   renderSelectedVideoClip,
   runFfmpegSmokeRender,
 } from './renders';
+import { hasUsedStory, rememberUsedStory } from './usedStoryMemory';
 import { generateVideoContactSheet, listVideoContactSheets } from './videoContactSheets';
 import { approveVisualPlan, generateMockVisualPlan, listVisualPlans } from './visualPlans';
 import { generateVoicePerformance, listVoicePerformances } from './voicePerformance';
@@ -173,6 +174,7 @@ export function App() {
   const [editingRecipeId, setEditingRecipeId] = useState<string | null>(null);
   const [recipeName, setRecipeName] = useState('');
   const [recipePrompt, setRecipePrompt] = useState('');
+  const [duplicateStoryBlocked, setDuplicateStoryBlocked] = useState<string | null>(null);
   const [qualityFindings, setQualityFindings] = useState<QualityFinding[]>([]);
   const [pronunciationCorrection, setPronunciationCorrection] = useState('');
   const [pronunciationCorrections, setPronunciationCorrections] = useState(() =>
@@ -425,7 +427,12 @@ export function App() {
   function startProjectFromRecipe(recipeId: string) {
     const recipe = savedContentRecipes.find((candidate) => candidate.id === recipeId);
     if (!recipe) return;
+    if (hasUsedStory(recipe.prompt)) {
+      setDuplicateStoryBlocked(recipe.name);
+      return;
+    }
     createProjectFromRecipe(recipe);
+    rememberUsedStory({ prompt: recipe.prompt, sourceName: recipe.name });
     setProjects(listProjects());
   }
 
@@ -1253,6 +1260,7 @@ export function App() {
             />
             <button type="submit">Save Content Recipe</button>
           </form>
+          {duplicateStoryBlocked ? <p>Duplicate story blocked: {duplicateStoryBlocked}</p> : null}
           {savedContentRecipes.map((recipe) => (
             <article key={recipe.id}>
               <p>Saved Content Recipe: {recipe.name}</p>
