@@ -18,6 +18,7 @@ import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import { createSourceOnlyProject, listProjects } from './projects';
+import { evaluateScriptQuality, QualityFinding } from './qualityFindings';
 import {
   createProviderConnection,
   deleteProviderConnection,
@@ -52,6 +53,7 @@ export function App() {
   const [projects, setProjects] = useState(() => listProjects());
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
+  const [qualityFindings, setQualityFindings] = useState<QualityFinding[]>([]);
   const [isRequestingScriptChange, setIsRequestingScriptChange] = useState(false);
   const [scriptChangeInstruction, setScriptChangeInstruction] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
@@ -145,6 +147,11 @@ export function App() {
     setArtifactVersions(listArtifactVersions());
     setScriptChangeInstruction('');
     setIsRequestingScriptChange(false);
+  }
+
+  function evaluateCurrentScriptQuality() {
+    if (!scriptDraft) return;
+    setQualityFindings(evaluateScriptQuality(scriptDraft));
   }
 
   function editBrandProfile(id: string) {
@@ -563,6 +570,9 @@ export function App() {
               <button type="button" onClick={() => setIsRequestingScriptChange(true)}>
                 Request Script Changes
               </button>
+              <button type="button" onClick={evaluateCurrentScriptQuality}>
+                Evaluate Script Quality
+              </button>
               {isRequestingScriptChange ? (
                 <form onSubmit={submitScriptChange}>
                   <label htmlFor="script-change-instruction">Script change instruction</label>
@@ -574,6 +584,18 @@ export function App() {
                   <button type="submit">Submit Script Changes</button>
                 </form>
               ) : null}
+            </>
+          ) : null}
+          {qualityFindings.length > 0 ? (
+            <>
+              <h3>Quality Findings</h3>
+              <ul>
+                {qualityFindings.map((finding) => (
+                  <li key={finding.check}>
+                    {finding.check}: {finding.status}
+                  </li>
+                ))}
+              </ul>
             </>
           ) : null}
           {latestApprovedScript ? (
