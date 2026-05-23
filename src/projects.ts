@@ -7,6 +7,7 @@ export type Project = {
   prompt: string;
   mode: 'Source-Only Mode';
   brandProfileName: string;
+  sourceUrls: string[];
 };
 
 export function listProjects(storage: Storage = window.localStorage): Project[] {
@@ -15,7 +16,7 @@ export function listProjects(storage: Storage = window.localStorage): Project[] 
 }
 
 export function createSourceOnlyProject(
-  input: { prompt: string; brandProfileName: string },
+  input: { prompt: string; brandProfileName: string; sourceUrl?: string },
   storage: Storage = window.localStorage,
 ): Project {
   const projects = listProjects(storage);
@@ -24,6 +25,7 @@ export function createSourceOnlyProject(
     prompt: input.prompt.trim(),
     mode: 'Source-Only Mode',
     brandProfileName: input.brandProfileName,
+    sourceUrls: input.sourceUrl?.trim() ? [input.sourceUrl.trim()] : [],
   };
   storage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify([...projects, project]));
   recordRunTraceEvent(

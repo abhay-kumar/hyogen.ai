@@ -44,6 +44,7 @@ export function App() {
   const [projects, setProjects] = useState(() => listProjects());
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [projectPrompt, setProjectPrompt] = useState('');
+  const [projectSourceUrl, setProjectSourceUrl] = useState('');
   const [selectedProjectBrandProfile, setSelectedProjectBrandProfile] = useState('');
   const [studioInput, setStudioInput] = useState('');
   const [studioMessages, setStudioMessages] = useState<StudioMessage[]>([]);
@@ -96,10 +97,12 @@ export function App() {
     event.preventDefault();
     createSourceOnlyProject({
       prompt: projectPrompt,
+      sourceUrl: projectSourceUrl,
       brandProfileName: selectedProjectBrandProfile || activeBrandProfiles[0]?.name || '',
     });
     setProjects(listProjects());
     setProjectPrompt('');
+    setProjectSourceUrl('');
     setSelectedProjectBrandProfile('');
     setIsCreatingProject(false);
   }
@@ -467,6 +470,16 @@ export function App() {
                   <strong>{project.prompt}</strong>
                   <p>Mode: {project.mode}</p>
                   <p>Brand Profile: {project.brandProfileName}</p>
+                  {project.sourceUrls.length > 0 ? (
+                    <>
+                      <h3>Source URLs</h3>
+                      <ul>
+                        {project.sourceUrls.map((sourceUrl) => (
+                          <li key={sourceUrl}>{sourceUrl}</li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -478,6 +491,12 @@ export function App() {
                 id="project-prompt"
                 value={projectPrompt}
                 onChange={(event) => setProjectPrompt(event.currentTarget.value)}
+              />
+              <label htmlFor="project-source-url">Source URL</label>
+              <input
+                id="project-source-url"
+                value={projectSourceUrl}
+                onChange={(event) => setProjectSourceUrl(event.currentTarget.value)}
               />
               <label htmlFor="project-brand-profile">Brand Profile</label>
               <select
