@@ -49,6 +49,10 @@ import {
   listSelectedMedia,
   type SelectedMedia,
 } from './selectedMedia';
+import {
+  listSelectedMediaValidations,
+  validateSelectedMediaWithMockVision,
+} from './selectedMediaValidation';
 import { generateMockCitedScriptDraft, ScriptDraft } from './scriptDrafts';
 import {
   listSourceMaterial,
@@ -85,6 +89,9 @@ export function App() {
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
   const [visualPlans, setVisualPlans] = useState(() => listVisualPlans());
   const [selectedMedia, setSelectedMedia] = useState(() => listSelectedMedia());
+  const [selectedMediaValidations, setSelectedMediaValidations] = useState(() =>
+    listSelectedMediaValidations(),
+  );
   const [projects, setProjects] = useState(() => listProjects());
   const [mediaCandidates, setMediaCandidates] = useState(() => listMediaCandidates());
   const [renderInputs, setRenderInputs] = useState(() => listRenderInputs());
@@ -219,6 +226,11 @@ export function App() {
       setMediaCandidates(listMediaCandidates());
     }
     setYtdlpDownloads(listYtdlpDownloads());
+  }
+
+  function validateSelection(selection: SelectedMedia) {
+    validateSelectedMediaWithMockVision(selection);
+    setSelectedMediaValidations(listSelectedMediaValidations());
   }
 
   function approveSelection(selection: SelectedMedia) {
@@ -645,6 +657,16 @@ export function App() {
                     {selection.rightsWarning ? (
                       <p>Rights warning persisted: {selection.rightsWarning}</p>
                     ) : null}
+                    <button type="button" onClick={() => validateSelection(selection)}>
+                      Validate Selected Media
+                    </button>
+                    {selectedMediaValidations
+                      .filter((validation) => validation.selectedMediaId === selection.id)
+                      .map((validation) => (
+                        <p key={validation.id}>
+                          Vision validation: {validation.status} with {validation.shotIntent}
+                        </p>
+                      ))}
                     {!selection.approved ? (
                       <button type="button" onClick={() => approveSelection(selection)}>
                         Approve Selected Media
