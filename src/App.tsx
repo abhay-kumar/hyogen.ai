@@ -20,6 +20,7 @@ import {
   DeepAgentsHelloResult,
   runDeepAgentsHello,
 } from './deepAgentsHealth';
+import { exportSafeDebugBundle, listDebugBundles } from './debugBundle';
 import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { executeCleanupPlan, generateCleanupPlan, listCleanupPlans } from './cleanup';
@@ -109,6 +110,7 @@ export function App() {
   const [showRunTrace, setShowRunTrace] = useState(false);
   const [deepAgentsHealth, setDeepAgentsHealth] = useState<DeepAgentsHealth | null>(null);
   const [deepAgentsHello, setDeepAgentsHello] = useState<DeepAgentsHelloResult | null>(null);
+  const [debugBundles, setDebugBundles] = useState(() => listDebugBundles());
   const [brandProfiles, setBrandProfiles] = useState(() => listBrandProfiles());
   const [isCreatingBrandProfile, setIsCreatingBrandProfile] = useState(false);
   const [brandProfileName, setBrandProfileName] = useState('');
@@ -195,6 +197,11 @@ export function App() {
 
   function runDeepAgentsHelloCheck() {
     setDeepAgentsHello(runDeepAgentsHello());
+  }
+
+  function exportSafeDebug() {
+    exportSafeDebugBundle();
+    setDebugBundles(listDebugBundles());
   }
 
   function saveBrandProfile(event: FormEvent<HTMLFormElement>) {
@@ -1617,6 +1624,12 @@ export function App() {
         <button type="button" onClick={() => setShowRunTrace((visible) => !visible)}>
           {showRunTrace ? 'Hide Run Trace' : 'Show Run Trace'}
         </button>
+        <button type="button" onClick={exportSafeDebug}>
+          Export Safe Debug Bundle
+        </button>
+        {debugBundles.map((bundle) => (
+          <p key={bundle.id}>Safe Debug Bundle: {bundle.path}</p>
+        ))}
         {showRunTrace ? <pre>{redactedRunTraceJson()}</pre> : null}
       </section>
     </main>
