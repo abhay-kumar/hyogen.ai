@@ -10,6 +10,7 @@ export type HeavyJob = {
   kind: HeavyJobKind;
   label: string;
   status: HeavyJobStatus;
+  partialTraceRetained?: boolean;
 };
 
 export function listHeavyJobs(storage: Storage = window.localStorage): HeavyJob[] {
@@ -47,6 +48,36 @@ export function enqueueHeavyJob(
     storage,
   );
   return job;
+}
+
+export function cancelHeavyJob(
+  heavyJobId: string,
+  storage: Storage = window.localStorage,
+): HeavyJob | null {
+  let cancelledJob: HeavyJob | null = null;
+  let promotedQueuedJob = false;
+  const jobs: HeavyJob[] = listHeavyJobs(storage).map((job): HeavyJob => {
+    if (job.id === heavyJobId) {
+      cancelledJob = { ...job, status: 'cancelled', partialTraceRetained: true };
+      return cancelledJob;
+    }
+    if (!promotedQueuedJob && job.status === 'queued') {
+      promotedQueuedJob = true;
+      return { ...job, status: 'running' };
+    }
+    return job;
+  });
+  if (!cancelledJob) return null;
+  saveHeavyJobs(jobs, storage);
+  recordRunTraceEvent(
+    {
+      type: 'heavyJob.cancelled',
+      summary: 'Long-running child process cancelled with partial trace retained',
+      data: { heavyJobId, partialTraceRetained: true },
+    },
+    storage,
+  );
+  return cancelledJob;
 }
 
 export function completeHeavyJob(

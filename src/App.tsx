@@ -24,7 +24,7 @@ import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { executeCleanupPlan, generateCleanupPlan, listCleanupPlans } from './cleanup';
 import { listFinalPackages, exportFinalPackages } from './finalPackage';
-import { enqueueHeavyJob, listHeavyJobs } from './heavyJobQueue';
+import { cancelHeavyJob, enqueueHeavyJob, listHeavyJobs } from './heavyJobQueue';
 import { getHealthSnapshot } from './health';
 import { listImageGenerationRequests, requestImageGenerationApproval } from './imageGeneration';
 import {
@@ -460,6 +460,11 @@ export function App() {
   function markFinal(renderId: string) {
     markRenderFinal(renderId);
     setRenders(listRenders());
+  }
+
+  function cancelQueuedHeavyJob(heavyJobId: string) {
+    cancelHeavyJob(heavyJobId);
+    setHeavyJobs(listHeavyJobs());
   }
 
   function createMetadataPackage() {
@@ -1368,9 +1373,15 @@ export function App() {
             <>
               <h3>Heavy Job Queue</h3>
               {heavyJobs.map((job) => (
-                <p key={job.id}>
-                  Heavy Job: {job.kind} {job.status}
-                </p>
+                <article key={job.id}>
+                  <p>Heavy Job: {job.kind} {job.status}</p>
+                  {job.partialTraceRetained ? <p>Partial trace retained for {job.label}</p> : null}
+                  {job.status === 'running' || job.status === 'queued' ? (
+                    <button type="button" onClick={() => cancelQueuedHeavyJob(job.id)}>
+                      Cancel {job.label}
+                    </button>
+                  ) : null}
+                </article>
               ))}
             </>
           ) : null}
