@@ -61,6 +61,7 @@ import {
   materializeSourceUrls,
 } from './sourceMaterial';
 import { respondWithMockHarness, StudioMessage } from './studioChat';
+import { generateMockTtsAudio, listAudioArtifacts } from './ttsAudio';
 import { loadWorkspace, saveWorkspace } from './workspace';
 import { listYtdlpDownloads, runYtdlpDownloadStub } from './ytdlpDownloads';
 
@@ -90,6 +91,7 @@ export function App() {
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
   const [visualPlans, setVisualPlans] = useState(() => listVisualPlans());
   const [voicePerformances, setVoicePerformances] = useState(() => listVoicePerformances());
+  const [audioArtifacts, setAudioArtifacts] = useState(() => listAudioArtifacts());
   const [selectedMedia, setSelectedMedia] = useState(() => listSelectedMedia());
   const [selectedMediaValidations, setSelectedMediaValidations] = useState(() =>
     listSelectedMediaValidations(),
@@ -311,6 +313,13 @@ export function App() {
   function generateApprovedVoicePerformance() {
     generateVoicePerformance(latestApprovedScript?.target ?? 'Script Version 1');
     setVoicePerformances(listVoicePerformances());
+  }
+
+  function generateTtsAudio() {
+    const performance = voicePerformances.at(-1);
+    if (!performance) return;
+    generateMockTtsAudio(performance);
+    setAudioArtifacts(listAudioArtifacts());
   }
 
   function approveCurrentVisualPlan(visualPlanId: string) {
@@ -1026,6 +1035,19 @@ export function App() {
                 <p key={performance.id}>
                   Voice Performance: {performance.tone}, pace {performance.pace}, emphasis{' '}
                   {performance.emphasis}
+                </p>
+              ))}
+              <button type="button" onClick={generateTtsAudio}>
+                Generate Mock TTS Audio
+              </button>
+            </>
+          ) : null}
+          {audioArtifacts.length > 0 ? (
+            <>
+              <h3>Audio Artifacts</h3>
+              {audioArtifacts.map((artifact) => (
+                <p key={artifact.id}>
+                  Audio Artifact: {artifact.path} — segment {artifact.segmentIndex}
                 </p>
               ))}
             </>
