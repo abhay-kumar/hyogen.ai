@@ -8,6 +8,8 @@ export type CaptionSet = {
   path: string;
   srt: string;
   safeZoneStatus?: 'pass' | 'warning';
+  alignmentSource?: string;
+  safeZoneIssue?: string;
 };
 
 export function listCaptionSets(storage: Storage = window.localStorage): CaptionSet[] {
@@ -41,4 +43,31 @@ export function generateEstimatedCaptionSet(
     storage,
   );
   return captionSet;
+}
+
+export function alignCaptionsFromWordTimestampFixture(
+  captionSetId: string,
+  storage: Storage = window.localStorage,
+): CaptionSet | null {
+  let aligned: CaptionSet | null = null;
+  const captionSets = listCaptionSets(storage).map((captionSet) => {
+    if (captionSet.id !== captionSetId) return captionSet;
+    aligned = {
+      ...captionSet,
+      alignmentSource: 'word timestamps fixture',
+      safeZoneStatus: 'warning' as const,
+      safeZoneIssue: 'lower-third overlap warning',
+    };
+    return aligned;
+  });
+  storage.setItem(CAPTION_SETS_STORAGE_KEY, JSON.stringify(captionSets));
+  recordRunTraceEvent(
+    {
+      type: 'captions.aligned',
+      summary: 'Captions aligned from word-timestamp fixture with safe-zone warning',
+      data: { captionSetId },
+    },
+    storage,
+  );
+  return aligned;
 }

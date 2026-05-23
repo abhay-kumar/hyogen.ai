@@ -8,7 +8,11 @@ import {
   markScriptVersionsStale,
 } from './artifactVersions';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
-import { generateEstimatedCaptionSet, listCaptionSets } from './captions';
+import {
+  alignCaptionsFromWordTimestampFixture,
+  generateEstimatedCaptionSet,
+  listCaptionSets,
+} from './captions';
 import {
   checkDeepAgentsHealth,
   DeepAgentsHealth,
@@ -339,6 +343,11 @@ export function App() {
 
   function generateCaptions() {
     generateEstimatedCaptionSet(audioArtifacts);
+    setCaptionSets(listCaptionSets());
+  }
+
+  function alignCaptionsFromFixture(captionSetId: string) {
+    alignCaptionsFromWordTimestampFixture(captionSetId);
     setCaptionSets(listCaptionSets());
   }
 
@@ -1116,7 +1125,16 @@ export function App() {
               {captionSets.map((captionSet) => (
                 <article key={captionSet.id}>
                   <p>Caption Set: {captionSet.path}</p>
+                  {captionSet.alignmentSource ? (
+                    <>
+                      <p>Caption alignment: {captionSet.alignmentSource}</p>
+                      <p>Safe-zone issue: {captionSet.safeZoneIssue}</p>
+                    </>
+                  ) : null}
                   <pre>{captionSet.srt}</pre>
+                  <button type="button" onClick={() => alignCaptionsFromFixture(captionSet.id)}>
+                    Align Captions from Fixture
+                  </button>
                 </article>
               ))}
             </>
