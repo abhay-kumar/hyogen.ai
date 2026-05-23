@@ -29,7 +29,7 @@ import {
 } from './mediaPool';
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
 import { generateVideoContactSheet, listVideoContactSheets } from './videoContactSheets';
-import { generateMockVisualPlan, listVisualPlans } from './visualPlans';
+import { approveVisualPlan, generateMockVisualPlan, listVisualPlans } from './visualPlans';
 import { acknowledgePublicMediaWarnings, isPublicMediaAcknowledged } from './publicMediaRights';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import { createSourceOnlyProject, listProjects } from './projects';
@@ -243,6 +243,12 @@ export function App() {
     const content = selectedArtifactVersion?.content ?? artifactVersions.at(-1)?.content ?? '';
     generateMockVisualPlan(content);
     setVisualPlans(listVisualPlans());
+  }
+
+  function approveCurrentVisualPlan(visualPlanId: string) {
+    approveVisualPlan(visualPlanId);
+    setVisualPlans(listVisualPlans());
+    setApprovalDecisions(listApprovalDecisions());
   }
 
   function editBrandProfile(id: string) {
@@ -899,6 +905,12 @@ export function App() {
                   <p>Visual Scene 1: {plan.visualScenes[0]}</p>
                   <p>Shot 1: {plan.shots[0]}</p>
                   <p>Fallback Visual: {plan.fallbackVisual}</p>
+                  <p>Visual Plan: {plan.approved ? 'approved' : 'pending review'}</p>
+                  {!plan.approved ? (
+                    <button type="button" onClick={() => approveCurrentVisualPlan(plan.id)}>
+                      Approve Visual Plan
+                    </button>
+                  ) : null}
                 </article>
               ))}
             </>

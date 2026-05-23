@@ -1,3 +1,4 @@
+import { recordApprovalDecision } from './approvalGates';
 import { recordRunTraceEvent } from './runTrace';
 
 const VISUAL_PLANS_STORAGE_KEY = 'hyogen.visualPlans';
@@ -39,4 +40,28 @@ export function generateMockVisualPlan(
     storage,
   );
   return plan;
+}
+
+export function approveVisualPlan(
+  visualPlanId: string,
+  storage: Storage = window.localStorage,
+): VisualPlan | null {
+  let approvedPlan: VisualPlan | null = null;
+  const plans = listVisualPlans(storage).map((plan) => {
+    if (plan.id !== visualPlanId) return plan;
+    approvedPlan = { ...plan, approved: true };
+    return approvedPlan;
+  });
+  storage.setItem(VISUAL_PLANS_STORAGE_KEY, JSON.stringify(plans));
+  const target = `Visual Plan ${visualPlanId.split('-').at(-1)}`;
+  recordApprovalDecision({ target, decision: 'approved' }, storage);
+  recordRunTraceEvent(
+    {
+      type: 'visualPlan.approved',
+      summary: 'Visual Plan approved through Approval Gate',
+      data: { visualPlanId },
+    },
+    storage,
+  );
+  return approvedPlan;
 }
