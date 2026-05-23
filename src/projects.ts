@@ -12,6 +12,8 @@ export type Project = {
   relinkedFromManifest?: boolean;
   manifestPath?: string;
   variationOfProjectId?: string;
+  recipeId?: string;
+  recipeName?: string;
 };
 
 export function listProjects(storage: Storage = window.localStorage): Project[] {
@@ -56,6 +58,32 @@ export function archiveProject(projectId: string, storage: Storage = window.loca
     },
     storage,
   );
+}
+
+export function createProjectFromRecipe(
+  recipe: { id: string; name: string; prompt: string },
+  storage: Storage = window.localStorage,
+): Project {
+  const projects = listProjects(storage);
+  const project: Project = {
+    id: `project-${projects.length + 1}`,
+    prompt: recipe.prompt,
+    mode: 'Source-Only Mode',
+    brandProfileName: 'Recipe Default',
+    sourceUrls: [],
+    recipeId: recipe.id,
+    recipeName: recipe.name,
+  };
+  storage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify([...projects, project]));
+  recordRunTraceEvent(
+    {
+      type: 'project.createdFromRecipe',
+      summary: 'Project started from Saved Content Recipe',
+      data: { projectId: project.id, recipeId: recipe.id },
+    },
+    storage,
+  );
+  return project;
 }
 
 export function duplicateProjectVariation(

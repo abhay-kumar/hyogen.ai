@@ -64,6 +64,7 @@ import {
 } from './pronunciationDictionary';
 import {
   archiveProject,
+  createProjectFromRecipe,
   createSourceOnlyProject,
   deleteProject,
   duplicateProjectVariation,
@@ -419,6 +420,13 @@ export function App() {
     setEditingRecipeId(null);
     setRecipeName('');
     setRecipePrompt('');
+  }
+
+  function startProjectFromRecipe(recipeId: string) {
+    const recipe = savedContentRecipes.find((candidate) => candidate.id === recipeId);
+    if (!recipe) return;
+    createProjectFromRecipe(recipe);
+    setProjects(listProjects());
   }
 
   function editSavedContentRecipe(recipeId: string) {
@@ -1252,6 +1260,9 @@ export function App() {
               <button type="button" onClick={() => editSavedContentRecipe(recipe.id)}>
                 Edit {recipe.name}
               </button>
+              <button type="button" onClick={() => startProjectFromRecipe(recipe.id)}>
+                Start Project from {recipe.name}
+              </button>
             </article>
           ))}
 
@@ -1283,6 +1294,7 @@ export function App() {
                   {project.relinkedFromManifest ? (
                     <p>Imported Project from {project.manifestPath}</p>
                   ) : null}
+                  {project.recipeName ? <p>Project from Recipe: {project.recipeName}</p> : null}
                   {project.variationOfProjectId ? <p>Variation: {project.prompt}</p> : null}
                   {project.archived ? <p>Archived Project: {project.prompt}</p> : null}
                   {project.variationOfProjectId ? (
