@@ -53,3 +53,23 @@ export function renderImageShots(count: number, storage: Storage = window.localS
   );
   return shotRenders;
 }
+
+export function renderSelectedVideoClip(storage: Storage = window.localStorage): RenderArtifact {
+  const renders = listRenders(storage);
+  const render: RenderArtifact = {
+    id: `render-${renders.length + 1}`,
+    path: 'renders/video-shot-1.mp4',
+    status: 'rendered',
+    summary: 'blur-pad/crop + muted source audio',
+  };
+  storage.setItem(RENDERS_STORAGE_KEY, JSON.stringify([...renders, render]));
+  recordRunTraceEvent(
+    {
+      type: 'render.videoClip.completed',
+      summary: 'Selected video clip rendered with blur-pad/crop and muted source audio',
+      data: { renderId: render.id, path: render.path },
+    },
+    storage,
+  );
+  return render;
+}

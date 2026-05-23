@@ -35,7 +35,12 @@ import {
   type MediaCandidate,
 } from './mediaPool';
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
-import { listRenders, renderImageShots, runFfmpegSmokeRender } from './renders';
+import {
+  listRenders,
+  renderImageShots,
+  renderSelectedVideoClip,
+  runFfmpegSmokeRender,
+} from './renders';
 import { generateVideoContactSheet, listVideoContactSheets } from './videoContactSheets';
 import { approveVisualPlan, generateMockVisualPlan, listVisualPlans } from './visualPlans';
 import { generateVoicePerformance, listVoicePerformances } from './voicePerformance';
@@ -363,6 +368,11 @@ export function App() {
     setRenders(listRenders());
   }
 
+  function renderVideoClip() {
+    renderSelectedVideoClip();
+    setRenders(listRenders());
+  }
+
   function approveDictionaryCorrection(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     approvePronunciationCorrection(pronunciationCorrection);
@@ -456,6 +466,11 @@ export function App() {
     .at(-1);
   const audioPreviewApproved = approvalDecisions.some(
     (approval) => approval.target === 'Audio Preview' && approval.decision === 'approved',
+  );
+  const selectedMediaHasVideo = selectedMedia.some((selection) =>
+    mediaCandidates.some(
+      (candidate) => candidate.id === selection.mediaCandidateId && candidate.kind === 'video',
+    ),
   );
   const providerSearchSourceMaterial = sourceMaterial.filter(
     (source) => source.projectId === 'provider-native-search',
@@ -766,6 +781,11 @@ export function App() {
           {selectedMedia.length > 0 && renderInputs.length > 0 ? (
             <button type="button" onClick={renderSelectedImageShots}>
               Render Image Shots
+            </button>
+          ) : null}
+          {selectedMediaHasVideo ? (
+            <button type="button" onClick={renderVideoClip}>
+              Render Selected Video Clip
             </button>
           ) : null}
           {renderInputs.length > 0 ? (
