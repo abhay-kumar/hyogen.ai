@@ -7,9 +7,15 @@ export type MediaCandidate = {
   kind: 'image' | 'video';
   sourcePath: string;
   sourceUrl?: string;
-  origin?: 'local' | 'youtube-search' | 'downloaded' | 'public-free-image-search' | 'google-images-fallback';
+  origin?:
+    | 'local'
+    | 'youtube-search'
+    | 'downloaded'
+    | 'public-free-image-search'
+    | 'google-images-fallback'
+    | 'generated-image';
   rightsLabel?: string;
-  status: 'referenced' | 'indexed';
+  status: 'referenced' | 'indexed' | 'generated';
   copied: boolean;
   durationSeconds?: number;
   thumbnailPath?: string;
@@ -56,6 +62,30 @@ export function importLocalImageCandidate(
   storage: Storage = window.localStorage,
 ): MediaCandidate {
   return importLocalMediaCandidate('image', sourcePath, storage);
+}
+
+export function createGeneratedImageCandidate(
+  storage: Storage = window.localStorage,
+): MediaCandidate {
+  const candidates = listMediaCandidates(storage);
+  const candidate: MediaCandidate = {
+    id: `media-candidate-${candidates.length + 1}`,
+    kind: 'image',
+    sourcePath: 'generated/generated-fallback.png',
+    origin: 'generated-image',
+    status: 'generated',
+    copied: true,
+  };
+  storage.setItem(MEDIA_CANDIDATES_STORAGE_KEY, JSON.stringify([...candidates, candidate]));
+  recordRunTraceEvent(
+    {
+      type: 'imageGeneration.candidateCreated',
+      summary: 'Generated image became Media Candidate',
+      data: { mediaCandidateId: candidate.id, sourcePath: candidate.sourcePath },
+    },
+    storage,
+  );
+  return candidate;
 }
 
 export function importLocalVideoCandidate(

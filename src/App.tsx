@@ -19,6 +19,7 @@ import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
 import { listImageGenerationRequests, requestImageGenerationApproval } from './imageGeneration';
 import {
+  createGeneratedImageCandidate,
   createGoogleImagesFallbackCandidate,
   createPublicFreeImageSearchCandidate,
   createYouTubeSearchCandidate,
@@ -154,6 +155,13 @@ export function App() {
   function requestGeneratedImageApproval() {
     requestImageGenerationApproval();
     setImageGenerationRequests(listImageGenerationRequests());
+  }
+
+  function approveAndGenerateImage() {
+    const candidate = createGeneratedImageCandidate();
+    createRenderInputFromMediaCandidate(candidate);
+    setMediaCandidates(listMediaCandidates());
+    setRenderInputs(listRenderInputs());
   }
 
   function importLocalImage(event: FormEvent<HTMLFormElement>) {
@@ -539,7 +547,12 @@ export function App() {
           {imageGenerationRequests.length > 0 ? (
             <ul>
               {imageGenerationRequests.map((request) => (
-                <li key={request.id}>Image generation spend approval required</li>
+                <li key={request.id}>
+                  Image generation spend approval required
+                  <button type="button" onClick={approveAndGenerateImage}>
+                    Approve and Generate Image
+                  </button>
+                </li>
               ))}
             </ul>
           ) : null}
