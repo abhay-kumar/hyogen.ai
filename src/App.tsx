@@ -63,6 +63,7 @@ import {
   archiveProject,
   createSourceOnlyProject,
   deleteProject,
+  duplicateProjectVariation,
   importProjectFromManifest,
   listProjects,
 } from './projects';
@@ -302,6 +303,11 @@ export function App() {
       );
     }
     return candidate.sourcePath.split('/').at(-1) ?? selection.label;
+  }
+
+  function duplicateVariation(projectId: string) {
+    duplicateProjectVariation(projectId);
+    setProjects(listProjects());
   }
 
   function importProjectManifest(event: FormEvent<HTMLFormElement>) {
@@ -1142,7 +1148,13 @@ export function App() {
                   {project.relinkedFromManifest ? (
                     <p>Imported Project from {project.manifestPath}</p>
                   ) : null}
+                  {project.variationOfProjectId ? <p>Variation: {project.prompt}</p> : null}
                   {project.archived ? <p>Archived Project: {project.prompt}</p> : null}
+                  {!project.archived ? (
+                    <button type="button" onClick={() => duplicateVariation(project.id)}>
+                      Duplicate Variation for {project.prompt}
+                    </button>
+                  ) : null}
                   {!project.archived ? (
                     <button type="button" onClick={() => archiveExistingProject(project.id)}>
                       Archive {project.prompt}

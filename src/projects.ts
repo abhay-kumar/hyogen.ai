@@ -11,6 +11,7 @@ export type Project = {
   archived?: boolean;
   relinkedFromManifest?: boolean;
   manifestPath?: string;
+  variationOfProjectId?: string;
 };
 
 export function listProjects(storage: Storage = window.localStorage): Project[] {
@@ -55,6 +56,32 @@ export function archiveProject(projectId: string, storage: Storage = window.loca
     },
     storage,
   );
+}
+
+export function duplicateProjectVariation(
+  projectId: string,
+  storage: Storage = window.localStorage,
+): Project | null {
+  const projects = listProjects(storage);
+  const sourceProject = projects.find((project) => project.id === projectId);
+  if (!sourceProject) return null;
+  const variation: Project = {
+    ...sourceProject,
+    id: `project-${projects.length + 1}`,
+    prompt: `${sourceProject.prompt} (Copy)`,
+    variationOfProjectId: sourceProject.id,
+    archived: false,
+  };
+  storage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify([...projects, variation]));
+  recordRunTraceEvent(
+    {
+      type: 'project.variation.duplicated',
+      summary: 'Variation duplicated while sharing media pool',
+      data: { projectId: variation.id, variationOfProjectId: sourceProject.id },
+    },
+    storage,
+  );
+  return variation;
 }
 
 export function importProjectFromManifest(
