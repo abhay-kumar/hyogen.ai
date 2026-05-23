@@ -6,6 +6,7 @@ import {
   DeepAgentsHelloResult,
   runDeepAgentsHello,
 } from './deepAgentsHealth';
+import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import {
@@ -124,6 +125,7 @@ export function App() {
   const archivedBrandProfiles = brandProfiles.filter((profile) => profile.archived);
   const providerCapabilities = resolveProviderCapabilities(providerConnections);
   const degradedModeWarning = fullAgenticModeWarning(providerCapabilities);
+  const guidedWorkflowTimeline = getMockGuidedWorkflowTimeline();
 
   return (
     <main aria-label="hyogen.ai local shell">
@@ -196,6 +198,14 @@ export function App() {
             />
             <button type="submit">Send Message</button>
           </form>
+          <h2>Guided Workflow</h2>
+          <ol>
+            {guidedWorkflowTimeline.map((stage) => (
+              <li key={stage.name}>
+                {stage.name} — {stage.status}
+              </li>
+            ))}
+          </ol>
           {studioMessages.length > 0 ? (
             <ul>
               {studioMessages.map((message, index) => (
