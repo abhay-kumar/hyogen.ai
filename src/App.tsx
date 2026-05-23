@@ -59,7 +59,13 @@ import {
   approvePronunciationCorrection,
   listPronunciationCorrections,
 } from './pronunciationDictionary';
-import { archiveProject, createSourceOnlyProject, deleteProject, listProjects } from './projects';
+import {
+  archiveProject,
+  createSourceOnlyProject,
+  deleteProject,
+  importProjectFromManifest,
+  listProjects,
+} from './projects';
 import { evaluateScriptQuality, QualityFinding } from './qualityFindings';
 import {
   createProviderConnection,
@@ -153,6 +159,7 @@ export function App() {
   const [scriptChangeInstruction, setScriptChangeInstruction] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [deletedProjectPrompt, setDeletedProjectPrompt] = useState<string | null>(null);
+  const [projectManifestPath, setProjectManifestPath] = useState('');
   const [projectPrompt, setProjectPrompt] = useState('');
   const [projectSourceUrl, setProjectSourceUrl] = useState('');
   const [selectedProjectBrandProfile, setSelectedProjectBrandProfile] = useState('');
@@ -295,6 +302,13 @@ export function App() {
       );
     }
     return candidate.sourcePath.split('/').at(-1) ?? selection.label;
+  }
+
+  function importProjectManifest(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    importProjectFromManifest(projectManifestPath);
+    setProjects(listProjects());
+    setProjectManifestPath('');
   }
 
   function archiveExistingProject(projectId: string) {
@@ -1108,6 +1122,15 @@ export function App() {
 
           <h2>Projects</h2>
           {projects.length === 0 ? <p>No Projects yet.</p> : null}
+          <form onSubmit={importProjectManifest}>
+            <label htmlFor="project-manifest-path">Project manifest path</label>
+            <input
+              id="project-manifest-path"
+              value={projectManifestPath}
+              onChange={(event) => setProjectManifestPath(event.currentTarget.value)}
+            />
+            <button type="submit">Import Project Manifest</button>
+          </form>
           {deletedProjectPrompt ? <p>Deleted Project: {deletedProjectPrompt}</p> : null}
           {projects.length > 0 ? (
             <ul>
@@ -1116,6 +1139,9 @@ export function App() {
                   <strong>{project.prompt}</strong>
                   <p>Mode: {project.mode}</p>
                   <p>Brand Profile: {project.brandProfileName}</p>
+                  {project.relinkedFromManifest ? (
+                    <p>Imported Project from {project.manifestPath}</p>
+                  ) : null}
                   {project.archived ? <p>Archived Project: {project.prompt}</p> : null}
                   {!project.archived ? (
                     <button type="button" onClick={() => archiveExistingProject(project.id)}>

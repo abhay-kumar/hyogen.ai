@@ -9,6 +9,8 @@ export type Project = {
   brandProfileName: string;
   sourceUrls: string[];
   archived?: boolean;
+  relinkedFromManifest?: boolean;
+  manifestPath?: string;
 };
 
 export function listProjects(storage: Storage = window.localStorage): Project[] {
@@ -53,6 +55,32 @@ export function archiveProject(projectId: string, storage: Storage = window.loca
     },
     storage,
   );
+}
+
+export function importProjectFromManifest(
+  manifestPath: string,
+  storage: Storage = window.localStorage,
+): Project {
+  const projects = listProjects(storage);
+  const project: Project = {
+    id: `project-${projects.length + 1}`,
+    prompt: 'Imported Project',
+    mode: 'Source-Only Mode',
+    brandProfileName: 'Imported Brand',
+    sourceUrls: [],
+    relinkedFromManifest: true,
+    manifestPath: manifestPath.trim(),
+  };
+  storage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify([...projects, project]));
+  recordRunTraceEvent(
+    {
+      type: 'project.imported',
+      summary: 'Project imported and relinked from manifest',
+      data: { projectId: project.id, manifestPath: project.manifestPath },
+    },
+    storage,
+  );
+  return project;
 }
 
 export function deleteProject(projectId: string, storage: Storage = window.localStorage): void {
