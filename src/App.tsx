@@ -35,6 +35,7 @@ import {
   type MediaCandidate,
 } from './mediaPool';
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
+import { listRenders, runFfmpegSmokeRender } from './renders';
 import { generateVideoContactSheet, listVideoContactSheets } from './videoContactSheets';
 import { approveVisualPlan, generateMockVisualPlan, listVisualPlans } from './visualPlans';
 import { generateVoicePerformance, listVoicePerformances } from './voicePerformance';
@@ -102,6 +103,7 @@ export function App() {
   const [voicePerformances, setVoicePerformances] = useState(() => listVoicePerformances());
   const [audioArtifacts, setAudioArtifacts] = useState(() => listAudioArtifacts());
   const [captionSets, setCaptionSets] = useState(() => listCaptionSets());
+  const [renders, setRenders] = useState(() => listRenders());
   const [selectedMedia, setSelectedMedia] = useState(() => listSelectedMedia());
   const [selectedMediaValidations, setSelectedMediaValidations] = useState(() =>
     listSelectedMediaValidations(),
@@ -349,6 +351,11 @@ export function App() {
   function alignCaptionsFromFixture(captionSetId: string) {
     alignCaptionsFromWordTimestampFixture(captionSetId);
     setCaptionSets(listCaptionSets());
+  }
+
+  function runSmokeRender() {
+    runFfmpegSmokeRender();
+    setRenders(listRenders());
   }
 
   function approveDictionaryCorrection(event: FormEvent<HTMLFormElement>) {
@@ -1136,6 +1143,21 @@ export function App() {
                     Align Captions from Fixture
                   </button>
                 </article>
+              ))}
+            </>
+          ) : null}
+          {captionSets.length > 0 && audioArtifacts.length > 0 ? (
+            <button type="button" onClick={runSmokeRender}>
+              Run FFmpeg Smoke Render
+            </button>
+          ) : null}
+          {renders.length > 0 ? (
+            <>
+              <h3>Renders</h3>
+              {renders.map((render) => (
+                <p key={render.id}>
+                  Render: {render.path} — {render.summary}
+                </p>
               ))}
             </>
           ) : null}
