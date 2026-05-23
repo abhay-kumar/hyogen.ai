@@ -17,6 +17,7 @@ import {
 import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
+import { importLocalImageCandidate, listMediaCandidates } from './mediaPool';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import { createSourceOnlyProject, listProjects } from './projects';
 import { evaluateScriptQuality, QualityFinding } from './qualityFindings';
@@ -58,6 +59,8 @@ export function App() {
   const [artifactVersions, setArtifactVersions] = useState(() => listArtifactVersions());
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
   const [projects, setProjects] = useState(() => listProjects());
+  const [mediaCandidates, setMediaCandidates] = useState(() => listMediaCandidates());
+  const [localImagePath, setLocalImagePath] = useState('');
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
   const [qualityFindings, setQualityFindings] = useState<QualityFinding[]>([]);
@@ -112,6 +115,13 @@ export function App() {
   function addMockScriptVersion() {
     createMockScriptVersion();
     setArtifactVersions(listArtifactVersions());
+  }
+
+  function importLocalImage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    importLocalImageCandidate(localImagePath);
+    setMediaCandidates(listMediaCandidates());
+    setLocalImagePath('');
   }
 
   function startSourceOnlyProject(event: FormEvent<HTMLFormElement>) {
@@ -357,6 +367,33 @@ export function App() {
             </ul>
           ) : null}
           {selectedArtifactVersion ? <p>{selectedArtifactVersion.content}</p> : null}
+        </section>
+      ) : null}
+
+      {workspace ? (
+        <section aria-label="Media Pool">
+          <h2>Media Pool</h2>
+          <form onSubmit={importLocalImage}>
+            <label htmlFor="local-image-path">Local image path</label>
+            <input
+              id="local-image-path"
+              value={localImagePath}
+              onChange={(event) => setLocalImagePath(event.currentTarget.value)}
+            />
+            <button type="submit">Import Local Image</button>
+          </form>
+          {mediaCandidates.length > 0 ? (
+            <>
+              <h2>Media Candidates</h2>
+              <ul>
+                {mediaCandidates.map((candidate) => (
+                  <li key={candidate.id}>
+                    {candidate.sourcePath} — {candidate.status}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
         </section>
       ) : null}
 
