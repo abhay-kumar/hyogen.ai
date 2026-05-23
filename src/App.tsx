@@ -1,6 +1,12 @@
 import { FormEvent, useState } from 'react';
 import { listApprovalDecisions, recordApprovalDecision } from './approvalGates';
-import { ArtifactVersion, createMockScriptVersion, listArtifactVersions } from './artifactVersions';
+import {
+  ArtifactVersion,
+  createMockScriptVersion,
+  createScriptVersion,
+  listArtifactVersions,
+  markScriptVersionsStale,
+} from './artifactVersions';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
 import {
   checkDeepAgentsHealth,
@@ -46,6 +52,8 @@ export function App() {
   const [projects, setProjects] = useState(() => listProjects());
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
+  const [isRequestingScriptChange, setIsRequestingScriptChange] = useState(false);
+  const [scriptChangeInstruction, setScriptChangeInstruction] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [projectPrompt, setProjectPrompt] = useState('');
   const [projectSourceUrl, setProjectSourceUrl] = useState('');
@@ -128,6 +136,15 @@ export function App() {
     if (!latestScript) return;
     recordApprovalDecision({ target: latestScript.label, decision: 'approved' });
     setApprovalDecisions(listApprovalDecisions());
+  }
+
+  function submitScriptChange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    markScriptVersionsStale();
+    createScriptVersion(`Revision instruction: ${scriptChangeInstruction}`);
+    setArtifactVersions(listArtifactVersions());
+    setScriptChangeInstruction('');
+    setIsRequestingScriptChange(false);
   }
 
   function editBrandProfile(id: string) {
@@ -295,7 +312,8 @@ export function App() {
             <ul>
               {artifactVersions.map((version) => (
                 <li key={version.id}>
-                  {version.label}
+                  {version.label}{version.stale ? ' — stale' : ''}
+                  {version.content.startsWith('Revision instruction:') ? <p>{version.content}</p> : null}
                   <button type="button" onClick={() => setSelectedArtifactVersion(version)}>
                     View {version.label}
                   </button>
@@ -542,6 +560,20 @@ export function App() {
               <button type="button" onClick={approveLatestScript}>
                 Approve Script
               </button>
+              <button type="button" onClick={() => setIsRequestingScriptChange(true)}>
+                Request Script Changes
+              </button>
+              {isRequestingScriptChange ? (
+                <form onSubmit={submitScriptChange}>
+                  <label htmlFor="script-change-instruction">Script change instruction</label>
+                  <input
+                    id="script-change-instruction"
+                    value={scriptChangeInstruction}
+                    onChange={(event) => setScriptChangeInstruction(event.currentTarget.value)}
+                  />
+                  <button type="submit">Submit Script Changes</button>
+                </form>
+              ) : null}
             </>
           ) : null}
           {latestApprovedScript ? (
