@@ -11,6 +11,7 @@ import {
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
+import { createSourceOnlyProject, listProjects } from './projects';
 import {
   createProviderConnection,
   deleteProviderConnection,
@@ -40,6 +41,10 @@ export function App() {
   const [approvalDecisions, setApprovalDecisions] = useState(() => listApprovalDecisions());
   const [artifactVersions, setArtifactVersions] = useState(() => listArtifactVersions());
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
+  const [projects, setProjects] = useState(() => listProjects());
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [projectPrompt, setProjectPrompt] = useState('');
+  const [selectedProjectBrandProfile, setSelectedProjectBrandProfile] = useState('');
   const [studioInput, setStudioInput] = useState('');
   const [studioMessages, setStudioMessages] = useState<StudioMessage[]>([]);
   const [brandProfileSettings, setBrandProfileSettings] = useState({
@@ -85,6 +90,18 @@ export function App() {
   function addMockScriptVersion() {
     createMockScriptVersion();
     setArtifactVersions(listArtifactVersions());
+  }
+
+  function startSourceOnlyProject(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    createSourceOnlyProject({
+      prompt: projectPrompt,
+      brandProfileName: selectedProjectBrandProfile || activeBrandProfiles[0]?.name || '',
+    });
+    setProjects(listProjects());
+    setProjectPrompt('');
+    setSelectedProjectBrandProfile('');
+    setIsCreatingProject(false);
   }
 
   function editBrandProfile(id: string) {
@@ -442,7 +459,45 @@ export function App() {
           ) : null}
 
           <h2>Projects</h2>
-          <p>No Projects yet.</p>
+          {projects.length === 0 ? <p>No Projects yet.</p> : null}
+          {projects.length > 0 ? (
+            <ul>
+              {projects.map((project) => (
+                <li key={project.id}>
+                  <strong>{project.prompt}</strong>
+                  <p>Mode: {project.mode}</p>
+                  <p>Brand Profile: {project.brandProfileName}</p>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {isCreatingProject ? (
+            <form onSubmit={startSourceOnlyProject}>
+              <label htmlFor="project-prompt">Project prompt</label>
+              <input
+                id="project-prompt"
+                value={projectPrompt}
+                onChange={(event) => setProjectPrompt(event.currentTarget.value)}
+              />
+              <label htmlFor="project-brand-profile">Brand Profile</label>
+              <select
+                id="project-brand-profile"
+                value={selectedProjectBrandProfile}
+                onChange={(event) => setSelectedProjectBrandProfile(event.currentTarget.value)}
+              >
+                {activeBrandProfiles.map((profile) => (
+                  <option key={profile.id} value={profile.name}>
+                    {profile.name}
+                  </option>
+                ))}
+              </select>
+              <button type="submit">Start Source-Only Project</button>
+            </form>
+          ) : (
+            <button type="button" onClick={() => setIsCreatingProject(true)}>
+              Create Project
+            </button>
+          )}
         </section>
       ) : null}
 
