@@ -14,6 +14,7 @@ import {
   DeepAgentsHelloResult,
   runDeepAgentsHello,
 } from './deepAgentsHealth';
+import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
@@ -47,6 +48,8 @@ export function App() {
   const [providerName, setProviderName] = useState('');
   const [providerSecret, setProviderSecret] = useState('');
   const [providerHealthResults, setProviderHealthResults] = useState<ProviderHealthResult[]>([]);
+  const [researchQuery, setResearchQuery] = useState('');
+  const [discoveryLeads, setDiscoveryLeads] = useState(() => listDiscoveryLeads());
   const [approvalDecisions, setApprovalDecisions] = useState(() => listApprovalDecisions());
   const [artifactVersions, setArtifactVersions] = useState(() => listArtifactVersions());
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
@@ -201,6 +204,13 @@ export function App() {
 
   function runProviderHealthCheck() {
     setProviderHealthResults(checkMockProviderHealth(providerConnections));
+  }
+
+  function runSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    runProviderNativeSearch(researchQuery);
+    setDiscoveryLeads(listDiscoveryLeads());
+    setResearchQuery('');
   }
 
   const activeBrandProfiles = brandProfiles.filter((profile) => !profile.archived);
@@ -383,6 +393,27 @@ export function App() {
               {result.providerName} health: {result.status}
             </p>
           ))}
+
+          <h2>Research</h2>
+          <form onSubmit={runSearch}>
+            <label htmlFor="research-query">Research query</label>
+            <input
+              id="research-query"
+              value={researchQuery}
+              onChange={(event) => setResearchQuery(event.currentTarget.value)}
+            />
+            <button type="submit">Run Provider-Native Search</button>
+          </form>
+          {discoveryLeads.length > 0 ? (
+            <>
+              <h2>Discovery Leads</h2>
+              <ul>
+                {discoveryLeads.map((lead) => (
+                  <li key={lead.id}>{lead.url}</li>
+                ))}
+              </ul>
+            </>
+          ) : null}
 
           <h2>Provider Capability checklist</h2>
           <ul>

@@ -11,11 +11,12 @@ export function resolveProviderCapabilities(
   const hasOpenAICompatible = connections.some((connection) =>
     /openai|openrouter|anthropic|gemini|ollama/i.test(connection.name),
   );
+  const hasSearchDiscovery = connections.some((connection) => /search/i.test(connection.name));
 
   return [
     { name: 'Text LLM', status: hasOpenAICompatible ? 'ready' : 'missing' },
     { name: 'TTS plain', status: 'missing' },
-    { name: 'Search/discovery', status: 'missing' },
+    { name: 'Search/discovery', status: hasSearchDiscovery ? 'ready' : 'missing' },
   ];
 }
 
