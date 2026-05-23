@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { listApprovalDecisions, recordApprovalDecision } from './approvalGates';
+import { ArtifactVersion, createMockScriptVersion, listArtifactVersions } from './artifactVersions';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
 import {
   checkDeepAgentsHealth,
@@ -37,6 +38,8 @@ export function App() {
   const [providerSecret, setProviderSecret] = useState('');
   const [providerHealthResults, setProviderHealthResults] = useState<ProviderHealthResult[]>([]);
   const [approvalDecisions, setApprovalDecisions] = useState(() => listApprovalDecisions());
+  const [artifactVersions, setArtifactVersions] = useState(() => listArtifactVersions());
+  const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
   const [studioInput, setStudioInput] = useState('');
   const [studioMessages, setStudioMessages] = useState<StudioMessage[]>([]);
   const [brandProfileSettings, setBrandProfileSettings] = useState({
@@ -77,6 +80,11 @@ export function App() {
   function approveMockDecision() {
     recordApprovalDecision({ target: 'Mock Decision', decision: 'approved' });
     setApprovalDecisions(listApprovalDecisions());
+  }
+
+  function addMockScriptVersion() {
+    createMockScriptVersion();
+    setArtifactVersions(listArtifactVersions());
   }
 
   function editBrandProfile(id: string) {
@@ -231,6 +239,23 @@ export function App() {
               {approval.target}: {approval.decision}
             </p>
           ))}
+          <h2>Artifact Versions</h2>
+          <button type="button" onClick={addMockScriptVersion}>
+            Create Mock Script Version
+          </button>
+          {artifactVersions.length > 0 ? (
+            <ul>
+              {artifactVersions.map((version) => (
+                <li key={version.id}>
+                  {version.label}
+                  <button type="button" onClick={() => setSelectedArtifactVersion(version)}>
+                    View {version.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {selectedArtifactVersion ? <p>{selectedArtifactVersion.content}</p> : null}
         </section>
       ) : null}
 

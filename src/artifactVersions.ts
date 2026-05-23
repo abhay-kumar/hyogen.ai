@@ -1,0 +1,35 @@
+import { recordRunTraceEvent } from './runTrace';
+
+const ARTIFACT_VERSIONS_STORAGE_KEY = 'hyogen.artifactVersions';
+
+export type ArtifactVersion = {
+  id: string;
+  label: string;
+  kind: 'script';
+  content: string;
+};
+
+export function listArtifactVersions(storage: Storage = window.localStorage): ArtifactVersion[] {
+  const encoded = storage.getItem(ARTIFACT_VERSIONS_STORAGE_KEY);
+  return encoded ? (JSON.parse(encoded) as ArtifactVersion[]) : [];
+}
+
+export function createMockScriptVersion(storage: Storage = window.localStorage): ArtifactVersion {
+  const versions = listArtifactVersions(storage);
+  const version: ArtifactVersion = {
+    id: `artifact-version-${versions.length + 1}`,
+    label: `Script Version ${versions.length + 1}`,
+    kind: 'script',
+    content: 'Mock script for the Reference Workflow.',
+  };
+  storage.setItem(ARTIFACT_VERSIONS_STORAGE_KEY, JSON.stringify([...versions, version]));
+  recordRunTraceEvent(
+    {
+      type: 'artifact.version.created',
+      summary: 'Artifact Version created',
+      data: { artifactId: version.id, label: version.label, kind: version.kind },
+    },
+    storage,
+  );
+  return version;
+}
