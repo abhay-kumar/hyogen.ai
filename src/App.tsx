@@ -419,6 +419,10 @@ export function App() {
             />
             <button type="submit">Run Provider-Native Search</button>
           </form>
+          <p>
+            Research progress: {discoveryLeads.length} Discovery Lead{discoveryLeads.length === 1 ? '' : 's'},{' '}
+            {providerSearchSourceMaterial.length} Source Material
+          </p>
           {discoveryLeads.length > 0 ? (
             <>
               <h2>Discovery Leads</h2>
