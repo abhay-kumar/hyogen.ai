@@ -6,6 +6,10 @@ export type DeepAgentsHealth = {
   status: 'healthy';
 };
 
+export type DeepAgentsHelloResult = {
+  message: 'ready for Guided Workflow';
+};
+
 export function checkDeepAgentsHealth(storage: Storage = window.localStorage): DeepAgentsHealth {
   const health: DeepAgentsHealth = {
     boundary: 'Rust Boundary',
@@ -21,4 +25,17 @@ export function checkDeepAgentsHealth(storage: Storage = window.localStorage): D
     storage,
   );
   return health;
+}
+
+export function runDeepAgentsHello(storage: Storage = window.localStorage): DeepAgentsHelloResult {
+  const result: DeepAgentsHelloResult = { message: 'ready for Guided Workflow' };
+  recordRunTraceEvent(
+    {
+      type: 'deepagents.hello',
+      summary: 'DeepAgents hello run completed',
+      data: result,
+    },
+    storage,
+  );
+  return result;
 }

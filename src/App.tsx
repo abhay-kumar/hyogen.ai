@@ -1,6 +1,11 @@
 import { FormEvent, useState } from 'react';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
-import { checkDeepAgentsHealth, DeepAgentsHealth } from './deepAgentsHealth';
+import {
+  checkDeepAgentsHealth,
+  DeepAgentsHealth,
+  DeepAgentsHelloResult,
+  runDeepAgentsHello,
+} from './deepAgentsHealth';
 import { getHealthSnapshot } from './health';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import {
@@ -18,6 +23,7 @@ export function App() {
   const [workspacePath, setWorkspacePath] = useState('');
   const [showRunTrace, setShowRunTrace] = useState(false);
   const [deepAgentsHealth, setDeepAgentsHealth] = useState<DeepAgentsHealth | null>(null);
+  const [deepAgentsHello, setDeepAgentsHello] = useState<DeepAgentsHelloResult | null>(null);
   const [brandProfiles, setBrandProfiles] = useState(() => listBrandProfiles());
   const [isCreatingBrandProfile, setIsCreatingBrandProfile] = useState(false);
   const [brandProfileName, setBrandProfileName] = useState('');
@@ -42,6 +48,10 @@ export function App() {
 
   function runDeepAgentsHealthCheck() {
     setDeepAgentsHealth(checkDeepAgentsHealth());
+  }
+
+  function runDeepAgentsHelloCheck() {
+    setDeepAgentsHello(runDeepAgentsHello());
   }
 
   function saveBrandProfile(event: FormEvent<HTMLFormElement>) {
@@ -141,6 +151,10 @@ export function App() {
             <p>DeepAgents Stage Harness health: {deepAgentsHealth.status}</p>
           </>
         ) : null}
+        <button type="button" onClick={runDeepAgentsHelloCheck}>
+          Run DeepAgents Hello
+        </button>
+        {deepAgentsHello ? <p>DeepAgents hello: {deepAgentsHello.message}</p> : null}
       </section>
 
       <section aria-label="Workspace setup">
