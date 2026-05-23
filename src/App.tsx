@@ -77,6 +77,7 @@ import {
   materializeSourceUrls,
 } from './sourceMaterial';
 import { respondWithMockHarness, StudioMessage } from './studioChat';
+import { listTechnicalQaFindings, runTechnicalQa } from './technicalQa';
 import { generateMockTtsAudio, listAudioArtifacts } from './ttsAudio';
 import { loadWorkspace, saveWorkspace } from './workspace';
 import { listYtdlpDownloads, runYtdlpDownloadStub } from './ytdlpDownloads';
@@ -110,6 +111,7 @@ export function App() {
   const [audioArtifacts, setAudioArtifacts] = useState(() => listAudioArtifacts());
   const [captionSets, setCaptionSets] = useState(() => listCaptionSets());
   const [renders, setRenders] = useState(() => listRenders());
+  const [technicalQaFindings, setTechnicalQaFindings] = useState(() => listTechnicalQaFindings());
   const [selectedMedia, setSelectedMedia] = useState(() => listSelectedMedia());
   const [selectedMediaValidations, setSelectedMediaValidations] = useState(() =>
     listSelectedMediaValidations(),
@@ -377,6 +379,13 @@ export function App() {
   function markFinal(renderId: string) {
     markRenderFinal(renderId);
     setRenders(listRenders());
+  }
+
+  function runRenderTechnicalQa(renderId: string) {
+    const render = renders.find((candidate) => candidate.id === renderId);
+    if (!render) return;
+    runTechnicalQa(render);
+    setTechnicalQaFindings(listTechnicalQaFindings());
   }
 
   function approveDictionaryCorrection(event: FormEvent<HTMLFormElement>) {
@@ -1201,7 +1210,20 @@ export function App() {
                       Mark Render Final
                     </button>
                   ) : null}
+                  <button type="button" onClick={() => runRenderTechnicalQa(render.id)}>
+                    Run Technical QA
+                  </button>
                 </article>
+              ))}
+            </>
+          ) : null}
+          {technicalQaFindings.length > 0 ? (
+            <>
+              <h3>Technical QA Findings</h3>
+              {technicalQaFindings.map((finding) => (
+                <p key={finding.id}>
+                  Technical QA: {finding.check} {finding.status}
+                </p>
               ))}
             </>
           ) : null}
