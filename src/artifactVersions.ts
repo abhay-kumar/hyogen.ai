@@ -15,12 +15,19 @@ export function listArtifactVersions(storage: Storage = window.localStorage): Ar
 }
 
 export function createMockScriptVersion(storage: Storage = window.localStorage): ArtifactVersion {
+  return createScriptVersion('Mock script for the Reference Workflow.', storage);
+}
+
+export function createScriptVersion(
+  content: string,
+  storage: Storage = window.localStorage,
+): ArtifactVersion {
   const versions = listArtifactVersions(storage);
   const version: ArtifactVersion = {
     id: `artifact-version-${versions.length + 1}`,
     label: `Script Version ${versions.length + 1}`,
     kind: 'script',
-    content: 'Mock script for the Reference Workflow.',
+    content,
   };
   storage.setItem(ARTIFACT_VERSIONS_STORAGE_KEY, JSON.stringify([...versions, version]));
   recordRunTraceEvent(

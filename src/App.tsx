@@ -19,6 +19,7 @@ import {
 } from './providerConnections';
 import { checkMockProviderHealth, ProviderHealthResult } from './providerHealth';
 import { redactedRunTraceJson } from './runTrace';
+import { generateMockCitedScriptDraft, ScriptDraft } from './scriptDrafts';
 import { listSourceMaterial, materializeSourceUrls } from './sourceMaterial';
 import { respondWithMockHarness, StudioMessage } from './studioChat';
 import { loadWorkspace, saveWorkspace } from './workspace';
@@ -44,6 +45,7 @@ export function App() {
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
   const [projects, setProjects] = useState(() => listProjects());
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
+  const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [projectPrompt, setProjectPrompt] = useState('');
   const [projectSourceUrl, setProjectSourceUrl] = useState('');
@@ -112,6 +114,11 @@ export function App() {
   function materializeProjectSources() {
     projects.forEach((project) => materializeSourceUrls(project.id, project.sourceUrls));
     setSourceMaterial(listSourceMaterial());
+  }
+
+  function generateScriptDraft() {
+    setScriptDraft(generateMockCitedScriptDraft(sourceMaterial));
+    setArtifactVersions(listArtifactVersions());
   }
 
   function editBrandProfile(id: string) {
@@ -507,6 +514,18 @@ export function App() {
             <button type="button" onClick={materializeProjectSources}>
               Materialize Source URLs
             </button>
+          ) : null}
+          {sourceMaterial.some((source) => source.status === 'materialized') ? (
+            <button type="button" onClick={generateScriptDraft}>
+              Generate Script Draft
+            </button>
+          ) : null}
+          {scriptDraft ? (
+            <>
+              <h3>Script Draft</h3>
+              <p>{scriptDraft.content}</p>
+              <p>Citation: {scriptDraft.citationUrl}</p>
+            </>
           ) : null}
           {isCreatingProject ? (
             <form onSubmit={startSourceOnlyProject}>
