@@ -94,6 +94,7 @@ import {
   materializeDiscoveryLeadUrls,
   materializeSourceUrls,
 } from './sourceMaterial';
+import { listFailedStages, listStageRetries, retryFailedStage } from './stageRetries';
 import { respondWithMockHarness, StudioMessage } from './studioChat';
 import { listTechnicalQaFindings, runTechnicalQa } from './technicalQa';
 import { generateMockTtsAudio, listAudioArtifacts } from './ttsAudio';
@@ -134,6 +135,8 @@ export function App() {
   const [finalPackages, setFinalPackages] = useState(() => listFinalPackages());
   const [cleanupPlans, setCleanupPlans] = useState(() => listCleanupPlans());
   const [heavyJobs, setHeavyJobs] = useState(() => listHeavyJobs());
+  const [failedStages, setFailedStages] = useState(() => listFailedStages());
+  const [stageRetries, setStageRetries] = useState(() => listStageRetries());
   const [metadataRevision, setMetadataRevision] = useState('');
   const [technicalQaFindings, setTechnicalQaFindings] = useState(() => listTechnicalQaFindings());
   const [semanticQaFindings, setSemanticQaFindings] = useState(() => listSemanticQaFindings());
@@ -465,6 +468,12 @@ export function App() {
   function cancelQueuedHeavyJob(heavyJobId: string) {
     cancelHeavyJob(heavyJobId);
     setHeavyJobs(listHeavyJobs());
+  }
+
+  function retryStageFromArtifactState(failedStageId: string) {
+    retryFailedStage(failedStageId);
+    setFailedStages(listFailedStages());
+    setStageRetries(listStageRetries());
   }
 
   function createMetadataPackage() {
@@ -1366,6 +1375,22 @@ export function App() {
                     Align Captions from Fixture
                   </button>
                 </article>
+              ))}
+            </>
+          ) : null}
+          {failedStages.length > 0 || stageRetries.length > 0 ? (
+            <>
+              <h3>Stage Retries</h3>
+              {failedStages.map((stage) => (
+                <article key={stage.id}>
+                  <p>Failed stage: {stage.stage}</p>
+                  <button type="button" onClick={() => retryStageFromArtifactState(stage.id)}>
+                    Retry {stage.stage} from persisted artifact state
+                  </button>
+                </article>
+              ))}
+              {stageRetries.map((retry) => (
+                <p key={retry.id}>Stage retry: {retry.stage} using persisted artifact state</p>
               ))}
             </>
           ) : null}
