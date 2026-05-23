@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { listApprovalDecisions, recordApprovalDecision } from './approvalGates';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
 import {
   checkDeepAgentsHealth,
@@ -35,6 +36,7 @@ export function App() {
   const [providerName, setProviderName] = useState('');
   const [providerSecret, setProviderSecret] = useState('');
   const [providerHealthResults, setProviderHealthResults] = useState<ProviderHealthResult[]>([]);
+  const [approvalDecisions, setApprovalDecisions] = useState(() => listApprovalDecisions());
   const [studioInput, setStudioInput] = useState('');
   const [studioMessages, setStudioMessages] = useState<StudioMessage[]>([]);
   const [brandProfileSettings, setBrandProfileSettings] = useState({
@@ -70,6 +72,11 @@ export function App() {
     event.preventDefault();
     setStudioMessages((messages) => [...messages, ...respondWithMockHarness(studioInput)]);
     setStudioInput('');
+  }
+
+  function approveMockDecision() {
+    recordApprovalDecision({ target: 'Mock Decision', decision: 'approved' });
+    setApprovalDecisions(listApprovalDecisions());
   }
 
   function editBrandProfile(id: string) {
@@ -215,6 +222,15 @@ export function App() {
               ))}
             </ul>
           ) : null}
+          <h2>Approval Gate</h2>
+          <button type="button" onClick={approveMockDecision}>
+            Approve Mock Decision
+          </button>
+          {approvalDecisions.map((approval) => (
+            <p key={approval.id}>
+              {approval.target}: {approval.decision}
+            </p>
+          ))}
         </section>
       ) : null}
 
