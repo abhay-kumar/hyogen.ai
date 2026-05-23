@@ -19,6 +19,7 @@ import {
 } from './providerConnections';
 import { checkMockProviderHealth, ProviderHealthResult } from './providerHealth';
 import { redactedRunTraceJson } from './runTrace';
+import { listSourceMaterial, materializeSourceUrls } from './sourceMaterial';
 import { respondWithMockHarness, StudioMessage } from './studioChat';
 import { loadWorkspace, saveWorkspace } from './workspace';
 
@@ -42,6 +43,7 @@ export function App() {
   const [artifactVersions, setArtifactVersions] = useState(() => listArtifactVersions());
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
   const [projects, setProjects] = useState(() => listProjects());
+  const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [projectPrompt, setProjectPrompt] = useState('');
   const [projectSourceUrl, setProjectSourceUrl] = useState('');
@@ -105,6 +107,11 @@ export function App() {
     setProjectSourceUrl('');
     setSelectedProjectBrandProfile('');
     setIsCreatingProject(false);
+  }
+
+  function materializeProjectSources() {
+    projects.forEach((project) => materializeSourceUrls(project.id, project.sourceUrls));
+    setSourceMaterial(listSourceMaterial());
   }
 
   function editBrandProfile(id: string) {
@@ -483,6 +490,23 @@ export function App() {
                 </li>
               ))}
             </ul>
+          ) : null}
+          {sourceMaterial.length > 0 ? (
+            <>
+              <h3>Source Material</h3>
+              <ul>
+                {sourceMaterial.map((source) => (
+                  <li key={source.id}>
+                    {source.url} — {source.status}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          {projects.some((project) => project.sourceUrls.length > 0) ? (
+            <button type="button" onClick={materializeProjectSources}>
+              Materialize Source URLs
+            </button>
           ) : null}
           {isCreatingProject ? (
             <form onSubmit={startSourceOnlyProject}>
