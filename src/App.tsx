@@ -41,7 +41,7 @@ import {
 } from './providerConnections';
 import { checkMockProviderHealth, ProviderHealthResult } from './providerHealth';
 import { redactedRunTraceJson } from './runTrace';
-import { assignMediaCandidateToShot, listSelectedMedia } from './selectedMedia';
+import { assignMediaCandidateToShot, listSelectedMedia, type SelectedMedia } from './selectedMedia';
 import { generateMockCitedScriptDraft, ScriptDraft } from './scriptDrafts';
 import {
   listSourceMaterial,
@@ -197,6 +197,19 @@ export function App() {
       setMediaCandidates(listMediaCandidates());
     }
     setYtdlpDownloads(listYtdlpDownloads());
+  }
+
+  function previewForSelectedMedia(selection: SelectedMedia): string {
+    const candidate = mediaCandidates.find((media) => media.id === selection.mediaCandidateId);
+    if (!candidate) return selection.label;
+    if (candidate.kind === 'video') {
+      return (
+        videoContactSheets.find((sheet) => sheet.mediaCandidateId === candidate.id)?.contactSheetPath ??
+        candidate.thumbnailPath ??
+        selection.label
+      );
+    }
+    return candidate.sourcePath.split('/').at(-1) ?? selection.label;
   }
 
   function startSourceOnlyProject(event: FormEvent<HTMLFormElement>) {
@@ -581,7 +594,10 @@ export function App() {
               <h2>Selected Media</h2>
               <ul>
                 {selectedMedia.map((selection) => (
-                  <li key={selection.id}>Selected Media: Shot 1 -&gt; {selection.label}</li>
+                  <li key={selection.id}>
+                    Selected Media: Shot 1 -&gt; {selection.label}
+                    <p>Preview: {previewForSelectedMedia(selection)}</p>
+                  </li>
                 ))}
               </ul>
             </>
