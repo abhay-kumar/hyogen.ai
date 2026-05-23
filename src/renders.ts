@@ -33,3 +33,23 @@ export function runFfmpegSmokeRender(storage: Storage = window.localStorage): Re
   );
   return render;
 }
+
+export function renderImageShots(count: number, storage: Storage = window.localStorage): RenderArtifact[] {
+  const renders = listRenders(storage);
+  const shotRenders = Array.from({ length: count }, (_, index) => ({
+    id: `render-${renders.length + index + 1}`,
+    path: `renders/shot-${index + 1}.png`,
+    status: 'rendered' as const,
+    summary: 'image shot',
+  }));
+  storage.setItem(RENDERS_STORAGE_KEY, JSON.stringify([...renders, ...shotRenders]));
+  recordRunTraceEvent(
+    {
+      type: 'render.imageShots.completed',
+      summary: 'Image Shots rendered from selected Render Inputs',
+      data: { count: shotRenders.length },
+    },
+    storage,
+  );
+  return shotRenders;
+}

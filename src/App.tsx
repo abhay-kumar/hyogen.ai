@@ -35,7 +35,7 @@ import {
   type MediaCandidate,
 } from './mediaPool';
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
-import { listRenders, runFfmpegSmokeRender } from './renders';
+import { listRenders, renderImageShots, runFfmpegSmokeRender } from './renders';
 import { generateVideoContactSheet, listVideoContactSheets } from './videoContactSheets';
 import { approveVisualPlan, generateMockVisualPlan, listVisualPlans } from './visualPlans';
 import { generateVoicePerformance, listVoicePerformances } from './voicePerformance';
@@ -355,6 +355,11 @@ export function App() {
 
   function runSmokeRender() {
     runFfmpegSmokeRender();
+    setRenders(listRenders());
+  }
+
+  function renderSelectedImageShots() {
+    renderImageShots(selectedMedia.length);
     setRenders(listRenders());
   }
 
@@ -757,6 +762,11 @@ export function App() {
                 ))}
               </ul>
             </>
+          ) : null}
+          {selectedMedia.length > 0 && renderInputs.length > 0 ? (
+            <button type="button" onClick={renderSelectedImageShots}>
+              Render Image Shots
+            </button>
           ) : null}
           {renderInputs.length > 0 ? (
             <>
