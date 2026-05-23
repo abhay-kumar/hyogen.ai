@@ -15,6 +15,7 @@ import {
 } from './providerConnections';
 import { checkMockProviderHealth, ProviderHealthResult } from './providerHealth';
 import { redactedRunTraceJson } from './runTrace';
+import { respondWithMockHarness, StudioMessage } from './studioChat';
 import { loadWorkspace, saveWorkspace } from './workspace';
 
 export function App() {
@@ -33,6 +34,8 @@ export function App() {
   const [providerName, setProviderName] = useState('');
   const [providerSecret, setProviderSecret] = useState('');
   const [providerHealthResults, setProviderHealthResults] = useState<ProviderHealthResult[]>([]);
+  const [studioInput, setStudioInput] = useState('');
+  const [studioMessages, setStudioMessages] = useState<StudioMessage[]>([]);
   const [brandProfileSettings, setBrandProfileSettings] = useState({
     audience: '',
     tone: '',
@@ -60,6 +63,12 @@ export function App() {
     setBrandProfiles(listBrandProfiles());
     setBrandProfileName('');
     setIsCreatingBrandProfile(false);
+  }
+
+  function sendStudioMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStudioMessages((messages) => [...messages, ...respondWithMockHarness(studioInput)]);
+    setStudioInput('');
   }
 
   function editBrandProfile(id: string) {
@@ -174,6 +183,30 @@ export function App() {
           </form>
         )}
       </section>
+
+      {workspace ? (
+        <section aria-label="Studio">
+          <h2>Studio</h2>
+          <form onSubmit={sendStudioMessage}>
+            <label htmlFor="studio-message">Message hyogen</label>
+            <input
+              id="studio-message"
+              value={studioInput}
+              onChange={(event) => setStudioInput(event.currentTarget.value)}
+            />
+            <button type="submit">Send Message</button>
+          </form>
+          {studioMessages.length > 0 ? (
+            <ul>
+              {studioMessages.map((message, index) => (
+                <li key={`${message.speaker}-${index}`}>
+                  {message.speaker}: {message.text}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
 
       {workspace ? (
         <section aria-label="Provider Connections">
