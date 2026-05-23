@@ -29,6 +29,7 @@ import {
 } from './mediaPool';
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
 import { generateVideoContactSheet, listVideoContactSheets } from './videoContactSheets';
+import { generateMockVisualPlan, listVisualPlans } from './visualPlans';
 import { acknowledgePublicMediaWarnings, isPublicMediaAcknowledged } from './publicMediaRights';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import { createSourceOnlyProject, listProjects } from './projects';
@@ -74,6 +75,7 @@ export function App() {
   const [approvalDecisions, setApprovalDecisions] = useState(() => listApprovalDecisions());
   const [artifactVersions, setArtifactVersions] = useState(() => listArtifactVersions());
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
+  const [visualPlans, setVisualPlans] = useState(() => listVisualPlans());
   const [projects, setProjects] = useState(() => listProjects());
   const [mediaCandidates, setMediaCandidates] = useState(() => listMediaCandidates());
   const [renderInputs, setRenderInputs] = useState(() => listRenderInputs());
@@ -235,6 +237,12 @@ export function App() {
   function evaluateCurrentScriptQuality() {
     if (!scriptDraft) return;
     setQualityFindings(evaluateScriptQuality(scriptDraft));
+  }
+
+  function generateVisualPlan() {
+    const content = selectedArtifactVersion?.content ?? artifactVersions.at(-1)?.content ?? '';
+    generateMockVisualPlan(content);
+    setVisualPlans(listVisualPlans());
   }
 
   function editBrandProfile(id: string) {
@@ -877,6 +885,22 @@ export function App() {
               <p>
                 {latestApprovedScript.target}: {latestApprovedScript.decision}
               </p>
+              <button type="button" onClick={generateVisualPlan}>
+                Generate Visual Plan
+              </button>
+            </>
+          ) : null}
+          {visualPlans.length > 0 ? (
+            <>
+              <h3>Visual Plan</h3>
+              {visualPlans.map((plan) => (
+                <article key={plan.id}>
+                  <p>Script Segments: {plan.scriptSegments.join(', ')}</p>
+                  <p>Visual Scene 1: {plan.visualScenes[0]}</p>
+                  <p>Shot 1: {plan.shots[0]}</p>
+                  <p>Fallback Visual: {plan.fallbackVisual}</p>
+                </article>
+              ))}
             </>
           ) : null}
           {isCreatingProject ? (
