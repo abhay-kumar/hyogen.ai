@@ -8,6 +8,8 @@ export type MediaCandidate = {
   sourcePath: string;
   status: 'referenced';
   copied: boolean;
+  durationSeconds?: number;
+  thumbnailPath?: string;
 };
 
 export function listMediaCandidates(storage: Storage = window.localStorage): MediaCandidate[] {
@@ -15,26 +17,46 @@ export function listMediaCandidates(storage: Storage = window.localStorage): Med
   return encoded ? (JSON.parse(encoded) as MediaCandidate[]) : [];
 }
 
-export function importLocalImageCandidate(
+function importLocalMediaCandidate(
+  kind: MediaCandidate['kind'],
   sourcePath: string,
   storage: Storage = window.localStorage,
 ): MediaCandidate {
   const candidates = listMediaCandidates(storage);
+  const trimmedPath = sourcePath.trim();
+  const fileBase = trimmedPath.split('/').at(-1)?.replace(/\.[^.]+$/, '') ?? 'video';
   const candidate: MediaCandidate = {
     id: `media-candidate-${candidates.length + 1}`,
-    kind: 'image',
-    sourcePath: sourcePath.trim(),
+    kind,
+    sourcePath: trimmedPath,
     status: 'referenced',
     copied: false,
+    ...(kind === 'video'
+      ? { durationSeconds: 12.4, thumbnailPath: `thumbnails/${fileBase}.jpg` }
+      : {}),
   };
   storage.setItem(MEDIA_CANDIDATES_STORAGE_KEY, JSON.stringify([...candidates, candidate]));
   recordRunTraceEvent(
     {
       type: 'media.candidate.imported',
-      summary: 'Local image imported as Media Candidate',
-      data: { mediaCandidateId: candidate.id, copied: candidate.copied },
+      summary: `Local ${kind} imported as Media Candidate`,
+      data: { mediaCandidateId: candidate.id, kind, copied: candidate.copied },
     },
     storage,
   );
   return candidate;
+}
+
+export function importLocalImageCandidate(
+  sourcePath: string,
+  storage: Storage = window.localStorage,
+): MediaCandidate {
+  return importLocalMediaCandidate('image', sourcePath, storage);
+}
+
+export function importLocalVideoCandidate(
+  sourcePath: string,
+  storage: Storage = window.localStorage,
+): MediaCandidate {
+  return importLocalMediaCandidate('video', sourcePath, storage);
 }

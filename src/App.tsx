@@ -17,7 +17,12 @@ import {
 import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
-import { importLocalImageCandidate, listMediaCandidates, type MediaCandidate } from './mediaPool';
+import {
+  importLocalImageCandidate,
+  importLocalVideoCandidate,
+  listMediaCandidates,
+  type MediaCandidate,
+} from './mediaPool';
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import { createSourceOnlyProject, listProjects } from './projects';
@@ -63,6 +68,7 @@ export function App() {
   const [mediaCandidates, setMediaCandidates] = useState(() => listMediaCandidates());
   const [renderInputs, setRenderInputs] = useState(() => listRenderInputs());
   const [localImagePath, setLocalImagePath] = useState('');
+  const [localVideoPath, setLocalVideoPath] = useState('');
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
   const [qualityFindings, setQualityFindings] = useState<QualityFinding[]>([]);
@@ -124,6 +130,13 @@ export function App() {
     importLocalImageCandidate(localImagePath);
     setMediaCandidates(listMediaCandidates());
     setLocalImagePath('');
+  }
+
+  function importLocalVideo(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    importLocalVideoCandidate(localVideoPath);
+    setMediaCandidates(listMediaCandidates());
+    setLocalVideoPath('');
   }
 
   function selectRenderInput(candidate: MediaCandidate) {
@@ -389,6 +402,15 @@ export function App() {
             />
             <button type="submit">Import Local Image</button>
           </form>
+          <form onSubmit={importLocalVideo}>
+            <label htmlFor="local-video-path">Local video path</label>
+            <input
+              id="local-video-path"
+              value={localVideoPath}
+              onChange={(event) => setLocalVideoPath(event.currentTarget.value)}
+            />
+            <button type="submit">Import Local Video</button>
+          </form>
           {mediaCandidates.length > 0 ? (
             <>
               <h2>Media Candidates</h2>
@@ -396,6 +418,11 @@ export function App() {
                 {mediaCandidates.map((candidate) => (
                   <li key={candidate.id}>
                     {candidate.sourcePath} — {candidate.status}
+                    {candidate.kind === 'video' ? (
+                      <p>
+                        FFprobe: {candidate.durationSeconds}s, thumbnail: {candidate.thumbnailPath}
+                      </p>
+                    ) : null}
                     <button type="button" onClick={() => selectRenderInput(candidate)}>
                       Select {candidate.sourcePath.split('/').at(-1)} as Render Input
                     </button>
