@@ -35,6 +35,11 @@ import {
   listMediaCandidates,
   type MediaCandidate,
 } from './mediaPool';
+import {
+  generateMetadataPackage,
+  listMetadataPackages,
+  reviseMetadataPackage,
+} from './metadataPackage';
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
 import {
   listRenders,
@@ -113,6 +118,8 @@ export function App() {
   const [audioArtifacts, setAudioArtifacts] = useState(() => listAudioArtifacts());
   const [captionSets, setCaptionSets] = useState(() => listCaptionSets());
   const [renders, setRenders] = useState(() => listRenders());
+  const [metadataPackages, setMetadataPackages] = useState(() => listMetadataPackages());
+  const [metadataRevision, setMetadataRevision] = useState('');
   const [technicalQaFindings, setTechnicalQaFindings] = useState(() => listTechnicalQaFindings());
   const [semanticQaFindings, setSemanticQaFindings] = useState(() => listSemanticQaFindings());
   const [brandQaFindings, setBrandQaFindings] = useState(() => listBrandQaFindings());
@@ -383,6 +390,20 @@ export function App() {
   function markFinal(renderId: string) {
     markRenderFinal(renderId);
     setRenders(listRenders());
+  }
+
+  function createMetadataPackage() {
+    generateMetadataPackage();
+    setMetadataPackages(listMetadataPackages());
+  }
+
+  function submitMetadataRevision(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const latest = metadataPackages.at(-1);
+    if (!latest) return;
+    reviseMetadataPackage(latest.id, metadataRevision);
+    setMetadataPackages(listMetadataPackages());
+    setMetadataRevision('');
   }
 
   function runRenderTechnicalQa(renderId: string) {
@@ -1209,6 +1230,32 @@ export function App() {
             <button type="button" onClick={runSmokeRender}>
               Run FFmpeg Smoke Render
             </button>
+          ) : null}
+          {renders.length > 0 ? (
+            <button type="button" onClick={createMetadataPackage}>
+              Generate Metadata Package
+            </button>
+          ) : null}
+          {metadataPackages.length > 0 ? (
+            <>
+              <h3>Metadata Packages</h3>
+              {metadataPackages.map((metadata) => (
+                <article key={metadata.id}>
+                  <p>Metadata Title: {metadata.title}</p>
+                  <p>Metadata Description: {metadata.description}</p>
+                  <p>Metadata Tags: {metadata.tags.join(', ')}</p>
+                </article>
+              ))}
+              <form onSubmit={submitMetadataRevision}>
+                <label htmlFor="metadata-revision">Metadata revision</label>
+                <input
+                  id="metadata-revision"
+                  value={metadataRevision}
+                  onChange={(event) => setMetadataRevision(event.currentTarget.value)}
+                />
+                <button type="submit">Submit Metadata Revision</button>
+              </form>
+            </>
           ) : null}
           {renders.length > 0 ? (
             <>
