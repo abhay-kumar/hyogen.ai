@@ -45,6 +45,7 @@ import {
 } from './sourceMaterial';
 import { respondWithMockHarness, StudioMessage } from './studioChat';
 import { loadWorkspace, saveWorkspace } from './workspace';
+import { listYtdlpDownloads, runYtdlpDownloadStub } from './ytdlpDownloads';
 
 export function App() {
   const health = getHealthSnapshot();
@@ -74,6 +75,7 @@ export function App() {
   const [mediaCandidates, setMediaCandidates] = useState(() => listMediaCandidates());
   const [renderInputs, setRenderInputs] = useState(() => listRenderInputs());
   const [videoContactSheets, setVideoContactSheets] = useState(() => listVideoContactSheets());
+  const [ytdlpDownloads, setYtdlpDownloads] = useState(() => listYtdlpDownloads());
   const [localImagePath, setLocalImagePath] = useState('');
   const [localVideoPath, setLocalVideoPath] = useState('');
   const [publicMediaQuery, setPublicMediaQuery] = useState('');
@@ -162,6 +164,11 @@ export function App() {
   function generateContactSheet(candidate: MediaCandidate) {
     generateVideoContactSheet(candidate);
     setVideoContactSheets(listVideoContactSheets());
+  }
+
+  function runYtdlpDownload(candidate: MediaCandidate) {
+    runYtdlpDownloadStub(candidate);
+    setYtdlpDownloads(listYtdlpDownloads());
   }
 
   function startSourceOnlyProject(event: FormEvent<HTMLFormElement>) {
@@ -478,11 +485,28 @@ export function App() {
                         <button type="button" onClick={() => generateContactSheet(candidate)}>
                           Generate Contact Sheet for {candidate.sourcePath.split('/').at(-1)}
                         </button>
+                        {candidate.origin === 'youtube-search' ? (
+                          <button type="button" onClick={() => runYtdlpDownload(candidate)}>
+                            Download via yt-dlp for {candidate.sourcePath.split('/').at(-1)}
+                          </button>
+                        ) : null}
                       </>
                     ) : null}
                     <button type="button" onClick={() => selectRenderInput(candidate)}>
                       Select {candidate.sourcePath.split('/').at(-1)} as Render Input
                     </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          {ytdlpDownloads.length > 0 ? (
+            <>
+              <h2>yt-dlp Downloads</h2>
+              <ul>
+                {ytdlpDownloads.map((download) => (
+                  <li key={download.id}>
+                    yt-dlp: {download.status} for {download.sourceUrl}
                   </li>
                 ))}
               </ul>
