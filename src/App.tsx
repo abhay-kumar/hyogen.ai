@@ -78,6 +78,7 @@ import {
 } from './providerConnections';
 import { checkMockProviderHealth, ProviderHealthResult } from './providerHealth';
 import { redactedRunTraceJson } from './runTrace';
+import { listSavedContentRecipes, saveContentRecipe } from './savedContentRecipes';
 import { listSemanticQaFindings, runSemanticQa } from './semanticQa';
 import {
   approveSelectedMedia,
@@ -167,6 +168,10 @@ export function App() {
   );
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
+  const [savedContentRecipes, setSavedContentRecipes] = useState(() => listSavedContentRecipes());
+  const [editingRecipeId, setEditingRecipeId] = useState<string | null>(null);
+  const [recipeName, setRecipeName] = useState('');
+  const [recipePrompt, setRecipePrompt] = useState('');
   const [qualityFindings, setQualityFindings] = useState<QualityFinding[]>([]);
   const [pronunciationCorrection, setPronunciationCorrection] = useState('');
   const [pronunciationCorrections, setPronunciationCorrections] = useState(() =>
@@ -405,6 +410,23 @@ export function App() {
     if (!latestScript) return;
     recordApprovalDecision({ target: latestScript.label, decision: 'approved' });
     setApprovalDecisions(listApprovalDecisions());
+  }
+
+  function submitSavedContentRecipe(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    saveContentRecipe({ id: editingRecipeId, name: recipeName, prompt: recipePrompt });
+    setSavedContentRecipes(listSavedContentRecipes());
+    setEditingRecipeId(null);
+    setRecipeName('');
+    setRecipePrompt('');
+  }
+
+  function editSavedContentRecipe(recipeId: string) {
+    const recipe = savedContentRecipes.find((candidate) => candidate.id === recipeId);
+    if (!recipe) return;
+    setEditingRecipeId(recipe.id);
+    setRecipeName(recipe.name);
+    setRecipePrompt(recipe.prompt);
   }
 
   function submitScriptChange(event: FormEvent<HTMLFormElement>) {
@@ -1206,6 +1228,32 @@ export function App() {
               </ul>
             </>
           ) : null}
+
+          <h2>Saved Content Recipes</h2>
+          <form onSubmit={submitSavedContentRecipe}>
+            <label htmlFor="recipe-name">Recipe name</label>
+            <input
+              id="recipe-name"
+              value={recipeName}
+              onChange={(event) => setRecipeName(event.currentTarget.value)}
+            />
+            <label htmlFor="recipe-prompt">Recipe prompt</label>
+            <input
+              id="recipe-prompt"
+              value={recipePrompt}
+              onChange={(event) => setRecipePrompt(event.currentTarget.value)}
+            />
+            <button type="submit">Save Content Recipe</button>
+          </form>
+          {savedContentRecipes.map((recipe) => (
+            <article key={recipe.id}>
+              <p>Saved Content Recipe: {recipe.name}</p>
+              <p>{recipe.prompt}</p>
+              <button type="button" onClick={() => editSavedContentRecipe(recipe.id)}>
+                Edit {recipe.name}
+              </button>
+            </article>
+          ))}
 
           <h2>Projects</h2>
           {projects.length === 0 ? <p>No Projects yet.</p> : null}
