@@ -1,3 +1,4 @@
+import { recordApprovalDecision } from './approvalGates';
 import type { MediaCandidate } from './mediaPool';
 import { recordRunTraceEvent } from './runTrace';
 
@@ -10,6 +11,7 @@ export type SelectedMedia = {
   label: string;
   approved: boolean;
   rightsWarningPersisted: boolean;
+  rightsWarning?: string;
 };
 
 function fileName(path: string): string {
@@ -45,4 +47,33 @@ export function assignMediaCandidateToShot(
     storage,
   );
   return assignment;
+}
+
+export function approveSelectedMedia(
+  selectedMediaId: string,
+  rightsWarning: string | undefined,
+  storage: Storage = window.localStorage,
+): SelectedMedia | null {
+  let approvedSelection: SelectedMedia | null = null;
+  const selections = listSelectedMedia(storage).map((selection) => {
+    if (selection.id !== selectedMediaId) return selection;
+    approvedSelection = {
+      ...selection,
+      approved: true,
+      rightsWarningPersisted: Boolean(rightsWarning),
+      rightsWarning,
+    };
+    return approvedSelection;
+  });
+  storage.setItem(SELECTED_MEDIA_STORAGE_KEY, JSON.stringify(selections));
+  recordApprovalDecision({ target: 'Selected Media', decision: 'approved' }, storage);
+  recordRunTraceEvent(
+    {
+      type: 'selectedMedia.approved',
+      summary: 'Selected Media approved with persisted rights warning',
+      data: { selectedMediaId, rightsWarning },
+    },
+    storage,
+  );
+  return approvedSelection;
 }

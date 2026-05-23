@@ -41,7 +41,12 @@ import {
 } from './providerConnections';
 import { checkMockProviderHealth, ProviderHealthResult } from './providerHealth';
 import { redactedRunTraceJson } from './runTrace';
-import { assignMediaCandidateToShot, listSelectedMedia, type SelectedMedia } from './selectedMedia';
+import {
+  approveSelectedMedia,
+  assignMediaCandidateToShot,
+  listSelectedMedia,
+  type SelectedMedia,
+} from './selectedMedia';
 import { generateMockCitedScriptDraft, ScriptDraft } from './scriptDrafts';
 import {
   listSourceMaterial,
@@ -197,6 +202,13 @@ export function App() {
       setMediaCandidates(listMediaCandidates());
     }
     setYtdlpDownloads(listYtdlpDownloads());
+  }
+
+  function approveSelection(selection: SelectedMedia) {
+    const candidate = mediaCandidates.find((media) => media.id === selection.mediaCandidateId);
+    approveSelectedMedia(selection.id, candidate?.rightsLabel);
+    setSelectedMedia(listSelectedMedia());
+    setApprovalDecisions(listApprovalDecisions());
   }
 
   function previewForSelectedMedia(selection: SelectedMedia): string {
@@ -597,6 +609,15 @@ export function App() {
                   <li key={selection.id}>
                     Selected Media: Shot 1 -&gt; {selection.label}
                     <p>Preview: {previewForSelectedMedia(selection)}</p>
+                    <p>Selected Media approval: {selection.approved ? 'approved' : 'pending'}</p>
+                    {selection.rightsWarning ? (
+                      <p>Rights warning persisted: {selection.rightsWarning}</p>
+                    ) : null}
+                    {!selection.approved ? (
+                      <button type="button" onClick={() => approveSelection(selection)}>
+                        Approve Selected Media
+                      </button>
+                    ) : null}
                   </li>
                 ))}
               </ul>
