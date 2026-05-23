@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
+import { checkDeepAgentsHealth, DeepAgentsHealth } from './deepAgentsHealth';
 import { getHealthSnapshot } from './health';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import {
@@ -16,6 +17,7 @@ export function App() {
   const [workspace, setWorkspace] = useState(() => loadWorkspace());
   const [workspacePath, setWorkspacePath] = useState('');
   const [showRunTrace, setShowRunTrace] = useState(false);
+  const [deepAgentsHealth, setDeepAgentsHealth] = useState<DeepAgentsHealth | null>(null);
   const [brandProfiles, setBrandProfiles] = useState(() => listBrandProfiles());
   const [isCreatingBrandProfile, setIsCreatingBrandProfile] = useState(false);
   const [brandProfileName, setBrandProfileName] = useState('');
@@ -36,6 +38,10 @@ export function App() {
   function chooseWorkspace(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setWorkspace(saveWorkspace(workspacePath));
+  }
+
+  function runDeepAgentsHealthCheck() {
+    setDeepAgentsHealth(checkDeepAgentsHealth());
   }
 
   function saveBrandProfile(event: FormEvent<HTMLFormElement>) {
@@ -122,6 +128,19 @@ export function App() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section aria-label="DeepAgents Stage Harness">
+        <h2>DeepAgents Stage Harness</h2>
+        <button type="button" onClick={runDeepAgentsHealthCheck}>
+          Check DeepAgents Health
+        </button>
+        {deepAgentsHealth ? (
+          <>
+            <p>{deepAgentsHealth.boundary}: {deepAgentsHealth.supervision}</p>
+            <p>DeepAgents Stage Harness health: {deepAgentsHealth.status}</p>
+          </>
+        ) : null}
       </section>
 
       <section aria-label="Workspace setup">
