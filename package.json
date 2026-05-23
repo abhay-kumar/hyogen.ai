@@ -8,7 +8,8 @@
     "dev": "vite --host 127.0.0.1",
     "verify": "tsc --noEmit && vitest run",
     "build-local": "vite build",
-    "eval-live:provider": "node scripts/eval-live-provider.mjs"
+    "eval-live:provider": "node scripts/eval-live-provider.mjs",
+    "eval-live:reference-workflow": "node scripts/eval-live-reference-workflow.mjs"
   },
   "dependencies": {
     "@testing-library/jest-dom": "latest",
