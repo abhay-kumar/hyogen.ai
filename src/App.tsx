@@ -121,6 +121,15 @@ export function App() {
     setArtifactVersions(listArtifactVersions());
   }
 
+  function approveLatestScript() {
+    const latestScript = listArtifactVersions()
+      .filter((version) => version.kind === 'script')
+      .at(-1);
+    if (!latestScript) return;
+    recordApprovalDecision({ target: latestScript.label, decision: 'approved' });
+    setApprovalDecisions(listApprovalDecisions());
+  }
+
   function editBrandProfile(id: string) {
     const profile = brandProfiles.find((candidate) => candidate.id === id);
     if (!profile) return;
@@ -175,6 +184,9 @@ export function App() {
   const providerCapabilities = resolveProviderCapabilities(providerConnections);
   const degradedModeWarning = fullAgenticModeWarning(providerCapabilities);
   const guidedWorkflowTimeline = getMockGuidedWorkflowTimeline();
+  const latestApprovedScript = approvalDecisions
+    .filter((approval) => approval.target.startsWith('Script Version') && approval.decision === 'approved')
+    .at(-1);
 
   return (
     <main aria-label="hyogen.ai local shell">
@@ -268,11 +280,13 @@ export function App() {
           <button type="button" onClick={approveMockDecision}>
             Approve Mock Decision
           </button>
-          {approvalDecisions.map((approval) => (
-            <p key={approval.id}>
-              {approval.target}: {approval.decision}
-            </p>
-          ))}
+          {approvalDecisions
+            .filter((approval) => approval.target === 'Mock Decision')
+            .map((approval) => (
+              <p key={approval.id}>
+                {approval.target}: {approval.decision}
+              </p>
+            ))}
           <h2>Artifact Versions</h2>
           <button type="button" onClick={addMockScriptVersion}>
             Create Mock Script Version
@@ -525,6 +539,17 @@ export function App() {
               <h3>Script Draft</h3>
               <p>{scriptDraft.content}</p>
               <p>Citation: {scriptDraft.citationUrl}</p>
+              <button type="button" onClick={approveLatestScript}>
+                Approve Script
+              </button>
+            </>
+          ) : null}
+          {latestApprovedScript ? (
+            <>
+              <p>Latest approved Script: {latestApprovedScript.target}</p>
+              <p>
+                {latestApprovedScript.target}: {latestApprovedScript.decision}
+              </p>
             </>
           ) : null}
           {isCreatingProject ? (
