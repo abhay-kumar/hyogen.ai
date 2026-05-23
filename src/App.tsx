@@ -35,6 +35,10 @@ import { approveVisualPlan, generateMockVisualPlan, listVisualPlans } from './vi
 import { generateVoicePerformance, listVoicePerformances } from './voicePerformance';
 import { acknowledgePublicMediaWarnings, isPublicMediaAcknowledged } from './publicMediaRights';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
+import {
+  approvePronunciationCorrection,
+  listPronunciationCorrections,
+} from './pronunciationDictionary';
 import { createSourceOnlyProject, listProjects } from './projects';
 import { evaluateScriptQuality, QualityFinding } from './qualityFindings';
 import {
@@ -110,6 +114,10 @@ export function App() {
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
   const [qualityFindings, setQualityFindings] = useState<QualityFinding[]>([]);
+  const [pronunciationCorrection, setPronunciationCorrection] = useState('');
+  const [pronunciationCorrections, setPronunciationCorrections] = useState(() =>
+    listPronunciationCorrections(),
+  );
   const [isRequestingScriptChange, setIsRequestingScriptChange] = useState(false);
   const [scriptChangeInstruction, setScriptChangeInstruction] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
@@ -327,6 +335,14 @@ export function App() {
     setApprovalDecisions(listApprovalDecisions());
   }
 
+  function approveDictionaryCorrection(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    approvePronunciationCorrection(pronunciationCorrection);
+    setPronunciationCorrections(listPronunciationCorrections());
+    setPronunciationCorrection('');
+    setApprovalDecisions(listApprovalDecisions());
+  }
+
   function approveCurrentVisualPlan(visualPlanId: string) {
     approveVisualPlan(visualPlanId);
     setVisualPlans(listVisualPlans());
@@ -537,6 +553,24 @@ export function App() {
             </ul>
           ) : null}
           {selectedArtifactVersion ? <p>{selectedArtifactVersion.content}</p> : null}
+        </section>
+      ) : null}
+
+      {workspace ? (
+        <section aria-label="Pronunciation Dictionary">
+          <h2>Pronunciation Dictionary</h2>
+          <form onSubmit={approveDictionaryCorrection}>
+            <label htmlFor="pronunciation-correction">Pronunciation correction</label>
+            <input
+              id="pronunciation-correction"
+              value={pronunciationCorrection}
+              onChange={(event) => setPronunciationCorrection(event.currentTarget.value)}
+            />
+            <button type="submit">Approve Pronunciation Correction</button>
+          </form>
+          {pronunciationCorrections.map((correction) => (
+            <p key={correction.id}>Pronunciation Dictionary: {correction.entry}</p>
+          ))}
         </section>
       ) : null}
 
