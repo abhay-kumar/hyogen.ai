@@ -21,14 +21,25 @@ export function generateMockTtsAudio(
   storage: Storage = window.localStorage,
 ): AudioArtifact[] {
   const existing = listAudioArtifacts(storage);
-  const artifacts = [1, 2].map((segmentIndex) => ({
-    id: `audio-artifact-${existing.length + segmentIndex}`,
-    voicePerformanceId: performance.id,
-    segmentIndex,
-    path: `audio/segment-${segmentIndex}.wav`,
-    textHash: `segment-${segmentIndex}-hash`,
-  }));
-  storage.setItem(AUDIO_ARTIFACTS_STORAGE_KEY, JSON.stringify([...existing, ...artifacts]));
+  const artifacts = [1, 2].map((segmentIndex) => {
+    const textHash = `segment-${segmentIndex}-hash`;
+    const cached = existing.find(
+      (artifact) => artifact.voicePerformanceId === performance.id && artifact.textHash === textHash,
+    );
+    return (
+      cached ?? {
+        id: `audio-artifact-${existing.length + segmentIndex}`,
+        voicePerformanceId: performance.id,
+        segmentIndex,
+        path: `audio/segment-${segmentIndex}.wav`,
+        textHash,
+      }
+    );
+  });
+  const newArtifacts = artifacts.filter(
+    (artifact) => !existing.some((candidate) => candidate.id === artifact.id),
+  );
+  storage.setItem(AUDIO_ARTIFACTS_STORAGE_KEY, JSON.stringify([...existing, ...newArtifacts]));
   recordRunTraceEvent(
     {
       type: 'tts.audio.generated',
