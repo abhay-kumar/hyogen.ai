@@ -25,6 +25,7 @@ import {
 } from './mediaPool';
 import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
 import { generateVideoContactSheet, listVideoContactSheets } from './videoContactSheets';
+import { acknowledgePublicMediaWarnings, isPublicMediaAcknowledged } from './publicMediaRights';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import { createSourceOnlyProject, listProjects } from './projects';
 import { evaluateScriptQuality, QualityFinding } from './qualityFindings';
@@ -60,6 +61,9 @@ export function App() {
   const [providerName, setProviderName] = useState('');
   const [providerSecret, setProviderSecret] = useState('');
   const [providerHealthResults, setProviderHealthResults] = useState<ProviderHealthResult[]>([]);
+  const [publicMediaAcknowledged, setPublicMediaAcknowledged] = useState(() =>
+    isPublicMediaAcknowledged(),
+  );
   const [researchQuery, setResearchQuery] = useState('');
   const [discoveryLeads, setDiscoveryLeads] = useState(() => listDiscoveryLeads());
   const [approvalDecisions, setApprovalDecisions] = useState(() => listApprovalDecisions());
@@ -247,6 +251,11 @@ export function App() {
     setProviderHealthResults(checkMockProviderHealth(providerConnections));
   }
 
+  function acknowledgeRightsWarnings() {
+    acknowledgePublicMediaWarnings();
+    setPublicMediaAcknowledged(isPublicMediaAcknowledged());
+  }
+
   function runSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     runProviderNativeSearch(researchQuery);
@@ -394,6 +403,22 @@ export function App() {
             </ul>
           ) : null}
           {selectedArtifactVersion ? <p>{selectedArtifactVersion.content}</p> : null}
+        </section>
+      ) : null}
+
+      {workspace ? (
+        <section aria-label="Public Media Rights">
+          <h2>Public Media Rights</h2>
+          {publicMediaAcknowledged ? (
+            <p>Public media warnings acknowledged</p>
+          ) : (
+            <>
+              <p>Public media rights acknowledgement required</p>
+              <button type="button" onClick={acknowledgeRightsWarnings}>
+                Acknowledge Public Media Warnings
+              </button>
+            </>
+          )}
         </section>
       ) : null}
 
