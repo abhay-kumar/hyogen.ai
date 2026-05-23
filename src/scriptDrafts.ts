@@ -27,3 +27,29 @@ export function generateMockCitedScriptDraft(
   );
   return draft;
 }
+
+export function repairScriptProviderOutput(
+  output: unknown,
+  storage: Storage = window.localStorage,
+): ScriptDraft {
+  const candidate = output && typeof output === 'object' ? (output as Partial<ScriptDraft>) : {};
+  const draft: ScriptDraft = {
+    content:
+      typeof candidate.content === 'string' && candidate.content.trim()
+        ? candidate.content
+        : 'Hook: This repaired draft needs creator review before approval.',
+    citationUrl:
+      typeof candidate.citationUrl === 'string' && candidate.citationUrl.trim()
+        ? candidate.citationUrl
+        : 'unverified',
+  };
+  recordRunTraceEvent(
+    {
+      type: 'script.output.repaired',
+      summary: 'Malformed script provider output repaired',
+      data: { citationUrl: draft.citationUrl },
+    },
+    storage,
+  );
+  return draft;
+}
