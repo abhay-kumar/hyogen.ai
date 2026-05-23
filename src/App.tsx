@@ -24,6 +24,7 @@ import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { executeCleanupPlan, generateCleanupPlan, listCleanupPlans } from './cleanup';
 import { listFinalPackages, exportFinalPackages } from './finalPackage';
+import { enqueueHeavyJob, listHeavyJobs } from './heavyJobQueue';
 import { getHealthSnapshot } from './health';
 import { listImageGenerationRequests, requestImageGenerationApproval } from './imageGeneration';
 import {
@@ -132,6 +133,7 @@ export function App() {
   const [metadataPackages, setMetadataPackages] = useState(() => listMetadataPackages());
   const [finalPackages, setFinalPackages] = useState(() => listFinalPackages());
   const [cleanupPlans, setCleanupPlans] = useState(() => listCleanupPlans());
+  const [heavyJobs, setHeavyJobs] = useState(() => listHeavyJobs());
   const [metadataRevision, setMetadataRevision] = useState('');
   const [technicalQaFindings, setTechnicalQaFindings] = useState(() => listTechnicalQaFindings());
   const [semanticQaFindings, setSemanticQaFindings] = useState(() => listSemanticQaFindings());
@@ -284,6 +286,9 @@ export function App() {
   }
 
   function runYtdlpDownload(candidate: MediaCandidate) {
+    const job = enqueueHeavyJob({ kind: 'download', label: `yt-dlp ${candidate.sourcePath}` });
+    setHeavyJobs(listHeavyJobs());
+    if (job.status === 'queued') return;
     const download = runYtdlpDownloadStub(candidate);
     if (download.status === 'completed') {
       indexDownloadedVideoCandidate(download.sourceUrl);
@@ -406,6 +411,9 @@ export function App() {
   function generateTtsAudio() {
     const performance = voicePerformances.at(-1);
     if (!performance) return;
+    const job = enqueueHeavyJob({ kind: 'tts', label: 'Generate Mock TTS Audio' });
+    setHeavyJobs(listHeavyJobs());
+    if (job.status === 'queued') return;
     generateMockTtsAudio(performance);
     setAudioArtifacts(listAudioArtifacts());
   }
@@ -426,16 +434,25 @@ export function App() {
   }
 
   function runSmokeRender() {
+    const job = enqueueHeavyJob({ kind: 'render', label: 'FFmpeg smoke render' });
+    setHeavyJobs(listHeavyJobs());
+    if (job.status === 'queued') return;
     runFfmpegSmokeRender();
     setRenders(listRenders());
   }
 
   function renderSelectedImageShots() {
+    const job = enqueueHeavyJob({ kind: 'render', label: 'Render image shots' });
+    setHeavyJobs(listHeavyJobs());
+    if (job.status === 'queued') return;
     renderImageShots(selectedMedia.length);
     setRenders(listRenders());
   }
 
   function renderVideoClip() {
+    const job = enqueueHeavyJob({ kind: 'render', label: 'Render selected video clip' });
+    setHeavyJobs(listHeavyJobs());
+    if (job.status === 'queued') return;
     renderSelectedVideoClip();
     setRenders(listRenders());
   }
@@ -1344,6 +1361,16 @@ export function App() {
                     Align Captions from Fixture
                   </button>
                 </article>
+              ))}
+            </>
+          ) : null}
+          {heavyJobs.length > 0 ? (
+            <>
+              <h3>Heavy Job Queue</h3>
+              {heavyJobs.map((job) => (
+                <p key={job.id}>
+                  Heavy Job: {job.kind} {job.status}
+                </p>
               ))}
             </>
           ) : null}
