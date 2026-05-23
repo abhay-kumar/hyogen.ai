@@ -17,6 +17,7 @@ import {
 import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
+import { listImageGenerationRequests, requestImageGenerationApproval } from './imageGeneration';
 import {
   createGoogleImagesFallbackCandidate,
   createPublicFreeImageSearchCandidate,
@@ -91,6 +92,9 @@ export function App() {
   const [localImagePath, setLocalImagePath] = useState('');
   const [localVideoPath, setLocalVideoPath] = useState('');
   const [publicMediaQuery, setPublicMediaQuery] = useState('');
+  const [imageGenerationRequests, setImageGenerationRequests] = useState(() =>
+    listImageGenerationRequests(),
+  );
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
   const [qualityFindings, setQualityFindings] = useState<QualityFinding[]>([]);
@@ -145,6 +149,11 @@ export function App() {
   function addMockScriptVersion() {
     createMockScriptVersion();
     setArtifactVersions(listArtifactVersions());
+  }
+
+  function requestGeneratedImageApproval() {
+    requestImageGenerationApproval();
+    setImageGenerationRequests(listImageGenerationRequests());
   }
 
   function importLocalImage(event: FormEvent<HTMLFormElement>) {
@@ -524,6 +533,16 @@ export function App() {
             />
             <button type="submit">Import Local Video</button>
           </form>
+          <button type="button" onClick={requestGeneratedImageApproval}>
+            Request Image Generation Approval
+          </button>
+          {imageGenerationRequests.length > 0 ? (
+            <ul>
+              {imageGenerationRequests.map((request) => (
+                <li key={request.id}>Image generation spend approval required</li>
+              ))}
+            </ul>
+          ) : null}
           {publicMediaAcknowledged ? (
             <form onSubmit={runMockYouTubeSearch}>
               <label htmlFor="public-media-query">Public media query</label>
