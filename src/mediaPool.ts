@@ -7,9 +7,9 @@ export type MediaCandidate = {
   kind: 'image' | 'video';
   sourcePath: string;
   sourceUrl?: string;
-  origin?: 'local' | 'youtube-search';
+  origin?: 'local' | 'youtube-search' | 'downloaded';
   rightsLabel?: string;
-  status: 'referenced';
+  status: 'referenced' | 'indexed';
   copied: boolean;
   durationSeconds?: number;
   thumbnailPath?: string;
@@ -65,6 +65,10 @@ export function importLocalVideoCandidate(
   return importLocalMediaCandidate('video', sourcePath, storage);
 }
 
+function slugFromSourceUrl(sourceUrl: string): string {
+  return sourceUrl.split('/').at(-1) ?? 'download';
+}
+
 export function createYouTubeSearchCandidate(
   query: string,
   storage: Storage = window.localStorage,
@@ -90,6 +94,36 @@ export function createYouTubeSearchCandidate(
       type: 'publicMedia.youtubeSearch.candidateCreated',
       summary: 'Mock YouTube search created public Media Candidate',
       data: { sourceUrl, rightsLabel: candidate.rightsLabel },
+    },
+    storage,
+  );
+  return candidate;
+}
+
+export function indexDownloadedVideoCandidate(
+  sourceUrl: string,
+  storage: Storage = window.localStorage,
+): MediaCandidate {
+  const candidates = listMediaCandidates(storage);
+  const slug = slugFromSourceUrl(sourceUrl);
+  const sourcePath = `downloads/${slug}.mp4`;
+  const candidate: MediaCandidate = {
+    id: `media-candidate-${candidates.length + 1}`,
+    kind: 'video',
+    sourcePath,
+    sourceUrl,
+    origin: 'downloaded',
+    status: 'indexed',
+    copied: true,
+    durationSeconds: 12.4,
+    thumbnailPath: `thumbnails/${slug}.jpg`,
+  };
+  storage.setItem(MEDIA_CANDIDATES_STORAGE_KEY, JSON.stringify([...candidates, candidate]));
+  recordRunTraceEvent(
+    {
+      type: 'media.candidate.indexed',
+      summary: 'Downloaded video indexed as Media Candidate',
+      data: { sourceUrl, sourcePath },
     },
     storage,
   );

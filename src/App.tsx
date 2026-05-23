@@ -19,6 +19,7 @@ import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
 import {
   createYouTubeSearchCandidate,
+  indexDownloadedVideoCandidate,
   importLocalImageCandidate,
   importLocalVideoCandidate,
   listMediaCandidates,
@@ -167,7 +168,11 @@ export function App() {
   }
 
   function runYtdlpDownload(candidate: MediaCandidate) {
-    runYtdlpDownloadStub(candidate);
+    const download = runYtdlpDownloadStub(candidate);
+    if (download.status === 'completed') {
+      indexDownloadedVideoCandidate(download.sourceUrl);
+      setMediaCandidates(listMediaCandidates());
+    }
     setYtdlpDownloads(listYtdlpDownloads());
   }
 
@@ -476,7 +481,8 @@ export function App() {
               <ul>
                 {mediaCandidates.map((candidate) => (
                   <li key={candidate.id}>
-                    {candidate.sourceUrl ?? candidate.sourcePath} — {candidate.rightsLabel ?? candidate.status}
+                    {candidate.rightsLabel ? candidate.sourceUrl : candidate.sourcePath} —{' '}
+                    {candidate.rightsLabel ?? candidate.status}
                     {candidate.kind === 'video' ? (
                       <>
                         <p>
