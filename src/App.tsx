@@ -41,6 +41,7 @@ import {
 } from './providerConnections';
 import { checkMockProviderHealth, ProviderHealthResult } from './providerHealth';
 import { redactedRunTraceJson } from './runTrace';
+import { assignMediaCandidateToShot, listSelectedMedia } from './selectedMedia';
 import { generateMockCitedScriptDraft, ScriptDraft } from './scriptDrafts';
 import {
   listSourceMaterial,
@@ -76,6 +77,7 @@ export function App() {
   const [artifactVersions, setArtifactVersions] = useState(() => listArtifactVersions());
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
   const [visualPlans, setVisualPlans] = useState(() => listVisualPlans());
+  const [selectedMedia, setSelectedMedia] = useState(() => listSelectedMedia());
   const [projects, setProjects] = useState(() => listProjects());
   const [mediaCandidates, setMediaCandidates] = useState(() => listMediaCandidates());
   const [renderInputs, setRenderInputs] = useState(() => listRenderInputs());
@@ -176,6 +178,11 @@ export function App() {
   function selectRenderInput(candidate: MediaCandidate) {
     createRenderInputFromMediaCandidate(candidate);
     setRenderInputs(listRenderInputs());
+  }
+
+  function assignCandidateToShot(candidate: MediaCandidate) {
+    assignMediaCandidateToShot(candidate);
+    setSelectedMedia(listSelectedMedia());
   }
 
   function generateContactSheet(candidate: MediaCandidate) {
@@ -532,6 +539,11 @@ export function App() {
                         ) : null}
                       </>
                     ) : null}
+                    {visualPlans.some((plan) => plan.approved) ? (
+                      <button type="button" onClick={() => assignCandidateToShot(candidate)}>
+                        Assign {candidate.sourcePath.split('/').at(-1)} to Shot 1
+                      </button>
+                    ) : null}
                     <button type="button" onClick={() => selectRenderInput(candidate)}>
                       Select {candidate.sourcePath.split('/').at(-1)} as Render Input
                     </button>
@@ -560,6 +572,16 @@ export function App() {
                   <li key={sheet.id}>
                     {sheet.contactSheetPath} — keyframes: {sheet.keyframes.join(', ')}
                   </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          {selectedMedia.length > 0 ? (
+            <>
+              <h2>Selected Media</h2>
+              <ul>
+                {selectedMedia.map((selection) => (
+                  <li key={selection.id}>Selected Media: Shot 1 -&gt; {selection.label}</li>
                 ))}
               </ul>
             </>
