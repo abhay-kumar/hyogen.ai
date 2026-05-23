@@ -8,6 +8,7 @@ import {
   markScriptVersionsStale,
 } from './artifactVersions';
 import { createBrandProfile, listBrandProfiles, updateBrandProfile } from './brandProfiles';
+import { generateEstimatedCaptionSet, listCaptionSets } from './captions';
 import {
   checkDeepAgentsHealth,
   DeepAgentsHealth,
@@ -96,6 +97,7 @@ export function App() {
   const [visualPlans, setVisualPlans] = useState(() => listVisualPlans());
   const [voicePerformances, setVoicePerformances] = useState(() => listVoicePerformances());
   const [audioArtifacts, setAudioArtifacts] = useState(() => listAudioArtifacts());
+  const [captionSets, setCaptionSets] = useState(() => listCaptionSets());
   const [selectedMedia, setSelectedMedia] = useState(() => listSelectedMedia());
   const [selectedMediaValidations, setSelectedMediaValidations] = useState(() =>
     listSelectedMediaValidations(),
@@ -333,6 +335,11 @@ export function App() {
   function approveAudioPreview() {
     recordApprovalDecision({ target: 'Audio Preview', decision: 'approved' });
     setApprovalDecisions(listApprovalDecisions());
+  }
+
+  function generateCaptions() {
+    generateEstimatedCaptionSet(audioArtifacts);
+    setCaptionSets(listCaptionSets());
   }
 
   function approveDictionaryCorrection(event: FormEvent<HTMLFormElement>) {
@@ -1098,6 +1105,20 @@ export function App() {
                   Approve Audio Preview
                 </button>
               ) : null}
+              <button type="button" onClick={generateCaptions}>
+                Generate Estimated Captions
+              </button>
+            </>
+          ) : null}
+          {captionSets.length > 0 ? (
+            <>
+              <h3>Caption Sets</h3>
+              {captionSets.map((captionSet) => (
+                <article key={captionSet.id}>
+                  <p>Caption Set: {captionSet.path}</p>
+                  <pre>{captionSet.srt}</pre>
+                </article>
+              ))}
             </>
           ) : null}
           {visualPlans.length > 0 ? (
