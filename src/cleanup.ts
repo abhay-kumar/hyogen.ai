@@ -33,3 +33,25 @@ export function generateCleanupPlan(storage: Storage = window.localStorage): Cle
   );
   return plan;
 }
+
+export function executeCleanupPlan(
+  cleanupPlanId: string,
+  storage: Storage = window.localStorage,
+): CleanupPlan | null {
+  let executedPlan: CleanupPlan | null = null;
+  const plans = listCleanupPlans(storage).map((plan) => {
+    if (plan.id !== cleanupPlanId) return plan;
+    executedPlan = { ...plan, executed: true };
+    return executedPlan;
+  });
+  storage.setItem(CLEANUP_PLANS_STORAGE_KEY, JSON.stringify(plans));
+  recordRunTraceEvent(
+    {
+      type: 'cleanup.executed',
+      summary: 'Cleanup executed after Approval Gate',
+      data: { cleanupPlanId },
+    },
+    storage,
+  );
+  return executedPlan;
+}

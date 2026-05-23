@@ -22,7 +22,7 @@ import {
 } from './deepAgentsHealth';
 import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
-import { generateCleanupPlan, listCleanupPlans } from './cleanup';
+import { executeCleanupPlan, generateCleanupPlan, listCleanupPlans } from './cleanup';
 import { listFinalPackages, exportFinalPackages } from './finalPackage';
 import { getHealthSnapshot } from './health';
 import { listImageGenerationRequests, requestImageGenerationApproval } from './imageGeneration';
@@ -408,6 +408,11 @@ export function App() {
 
   function createCleanupPlan() {
     generateCleanupPlan();
+    setCleanupPlans(listCleanupPlans());
+  }
+
+  function approveAndExecuteCleanup(cleanupPlanId: string) {
+    executeCleanupPlan(cleanupPlanId);
     setCleanupPlans(listCleanupPlans());
   }
 
@@ -1267,6 +1272,13 @@ export function App() {
                 <article key={plan.id}>
                   <p>Cleanup Plan: retain Render Inputs</p>
                   <p>Proposed deletions: {plan.proposedDeletions.join(', ')}</p>
+                  {plan.executed ? (
+                    <p>Cleanup executed: {plan.proposedDeletions.join(', ')}</p>
+                  ) : (
+                    <button type="button" onClick={() => approveAndExecuteCleanup(plan.id)}>
+                      Approve and Execute Cleanup
+                    </button>
+                  )}
                 </article>
               ))}
             </>
