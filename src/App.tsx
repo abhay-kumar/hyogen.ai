@@ -17,7 +17,8 @@ import {
 import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
 import { getHealthSnapshot } from './health';
-import { importLocalImageCandidate, listMediaCandidates } from './mediaPool';
+import { importLocalImageCandidate, listMediaCandidates, type MediaCandidate } from './mediaPool';
+import { createRenderInputFromMediaCandidate, listRenderInputs } from './renderInputs';
 import { fullAgenticModeWarning, resolveProviderCapabilities } from './providerCapabilities';
 import { createSourceOnlyProject, listProjects } from './projects';
 import { evaluateScriptQuality, QualityFinding } from './qualityFindings';
@@ -60,6 +61,7 @@ export function App() {
   const [selectedArtifactVersion, setSelectedArtifactVersion] = useState<ArtifactVersion | null>(null);
   const [projects, setProjects] = useState(() => listProjects());
   const [mediaCandidates, setMediaCandidates] = useState(() => listMediaCandidates());
+  const [renderInputs, setRenderInputs] = useState(() => listRenderInputs());
   const [localImagePath, setLocalImagePath] = useState('');
   const [sourceMaterial, setSourceMaterial] = useState(() => listSourceMaterial());
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
@@ -122,6 +124,11 @@ export function App() {
     importLocalImageCandidate(localImagePath);
     setMediaCandidates(listMediaCandidates());
     setLocalImagePath('');
+  }
+
+  function selectRenderInput(candidate: MediaCandidate) {
+    createRenderInputFromMediaCandidate(candidate);
+    setRenderInputs(listRenderInputs());
   }
 
   function startSourceOnlyProject(event: FormEvent<HTMLFormElement>) {
@@ -389,6 +396,21 @@ export function App() {
                 {mediaCandidates.map((candidate) => (
                   <li key={candidate.id}>
                     {candidate.sourcePath} — {candidate.status}
+                    <button type="button" onClick={() => selectRenderInput(candidate)}>
+                      Select {candidate.sourcePath.split('/').at(-1)} as Render Input
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          {renderInputs.length > 0 ? (
+            <>
+              <h2>Render Inputs</h2>
+              <ul>
+                {renderInputs.map((input) => (
+                  <li key={input.id}>
+                    {input.normalizedPath} — hash: {input.hash}
                   </li>
                 ))}
               </ul>
