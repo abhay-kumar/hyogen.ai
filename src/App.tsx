@@ -22,6 +22,7 @@ import {
 } from './deepAgentsHealth';
 import { listDiscoveryLeads, runProviderNativeSearch } from './discoveryLeads';
 import { getMockGuidedWorkflowTimeline } from './guidedWorkflow';
+import { listFinalPackages, exportFinalPackages } from './finalPackage';
 import { getHealthSnapshot } from './health';
 import { listImageGenerationRequests, requestImageGenerationApproval } from './imageGeneration';
 import {
@@ -119,6 +120,7 @@ export function App() {
   const [captionSets, setCaptionSets] = useState(() => listCaptionSets());
   const [renders, setRenders] = useState(() => listRenders());
   const [metadataPackages, setMetadataPackages] = useState(() => listMetadataPackages());
+  const [finalPackages, setFinalPackages] = useState(() => listFinalPackages());
   const [metadataRevision, setMetadataRevision] = useState('');
   const [technicalQaFindings, setTechnicalQaFindings] = useState(() => listTechnicalQaFindings());
   const [semanticQaFindings, setSemanticQaFindings] = useState(() => listSemanticQaFindings());
@@ -395,6 +397,11 @@ export function App() {
   function createMetadataPackage() {
     generateMetadataPackage();
     setMetadataPackages(listMetadataPackages());
+  }
+
+  function exportFinalPackage() {
+    exportFinalPackages();
+    setFinalPackages(listFinalPackages());
   }
 
   function submitMetadataRevision(event: FormEvent<HTMLFormElement>) {
@@ -1235,6 +1242,22 @@ export function App() {
             <button type="button" onClick={createMetadataPackage}>
               Generate Metadata Package
             </button>
+          ) : null}
+          {renders.some((render) => render.status === 'final') && metadataPackages.length > 0 ? (
+            <button type="button" onClick={exportFinalPackage}>
+              Export Final Package
+            </button>
+          ) : null}
+          {finalPackages.length > 0 ? (
+            <>
+              <h3>Final Packages</h3>
+              {finalPackages.map((finalPackage) => (
+                <article key={finalPackage.id}>
+                  <p>Final Package: {finalPackage.manifestPath}</p>
+                  <p>Includes: {finalPackage.includes.join(', ')}</p>
+                </article>
+              ))}
+            </>
           ) : null}
           {metadataPackages.length > 0 ? (
             <>
